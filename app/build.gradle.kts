@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.quest1pos"
-        minSdk = 24
+        minSdk = 28
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -64,4 +64,11 @@ dependencies {
     implementation(libs.google.dagger.hilt.android) // Or: "com.google.dagger:hilt-android:2.48"
     implementation(libs.androidx.hilt.navigation.compose) // Or: "androidx.hilt:hilt-navigation-compose:1.1.0"dependencies {
     implementation(libs.google.dagger.hilt.android) // This is for the library, not the plugin
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+
+    //Ditto Wrapper
+    implementation(project(":ditto-wrapper"))
+
+    //Ditto
+    implementation("live.ditto:ditto:4.8.1")
 }
