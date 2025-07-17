@@ -26,6 +26,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Quest1 POS"
+rootProject.name = "Quest1 Demo POS"
 include(":app")
 include(":ditto-wrapper")

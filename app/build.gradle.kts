@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.quest1pos"
+    namespace = "com.quest1.demopos"
     compileSdk = 36
 
     buildFeatures {
@@ -55,6 +55,9 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    buildFeatures {
+        compose = true
+    }
 }
 
 dependencies {
@@ -79,6 +82,11 @@ dependencies {
     implementation(libs.google.dagger.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+    implementation(libs.androidx.appcompat) // Or the direct string: "androidx.appcompat:appcompat:1.6.1"
+    implementation(libs.google.android.material) // Or: "com.google.android.material:material:1.11.0"
+    implementation(libs.google.dagger.hilt.android) // Or: "com.google.dagger:hilt-android:2.48"
+    implementation(libs.androidx.hilt.navigation.compose) // Or: "androidx.hilt:hilt-navigation-compose:1.1.0"dependencies {
+    implementation(libs.google.dagger.hilt.android) // This is for the library, not the plugin
 
     //Ditto Wrapper
     implementation(project(":ditto-wrapper"))
