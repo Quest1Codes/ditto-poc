@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.quest1pos"
+    namespace = "com.quest1.demopos"
     compileSdk = 36
 
     defaultConfig {
