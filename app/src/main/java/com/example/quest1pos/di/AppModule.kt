@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import live.ditto.ditto_wrapper.DittoManager
 import javax.inject.Singleton
+import com.example.quest1pos.BuildConfig
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -26,9 +27,9 @@ object AppModule {
     fun provideDittoManager(@ApplicationContext context: Context): DittoManager {
         // To resolve the authentication error, you must use a fresh App ID and Token
         // from a brand new app created in the Ditto Portal.
-        val dittoAppId = "ba6c2ddb-1c8f-4cf2-ae0d-35175ecc1428"
-        val dittoToken = "2f88e0dd-ff1a-4abf-a63e-b92c7e9936e7"
-        val dittoAuthUrl = "https://i83inp.cloud.dittolive.app"
+        val dittoAppId = BuildConfig.DITTO_APP_ID
+        val dittoToken = BuildConfig.DITTO_TOKEN
+        val dittoAuthUrl = BuildConfig.DITTO_AUTH_URL
 
         return DittoManager(
             context = context,

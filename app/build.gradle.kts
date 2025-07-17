@@ -1,3 +1,5 @@
+import java.util.Properties // <-- This import was missing.
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -10,6 +12,11 @@ android {
     namespace = "com.example.quest1pos"
     compileSdk = 36
 
+    buildFeatures {
+        buildConfig = true
+        compose = true
+    }
+
     defaultConfig {
         applicationId = "com.example.quest1pos"
         minSdk = 28
@@ -18,6 +25,18 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Load credentials from local.properties
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(localPropertiesFile.inputStream())
+        }
+
+        // Create BuildConfig fields from the loaded properties
+        buildConfigField("String", "DITTO_APP_ID", "\"${localProperties.getProperty("DITTO_APP_ID")}\"")
+        buildConfigField("String", "DITTO_TOKEN", "\"${localProperties.getProperty("DITTO_TOKEN")}\"")
+        buildConfigField("String", "DITTO_AUTH_URL", "\"${localProperties.getProperty("DITTO_AUTH_URL")}\"")
     }
 
     buildTypes {
@@ -36,13 +55,9 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
-    buildFeatures {
-        compose = true
-    }
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -59,11 +74,10 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     kapt(libs.google.dagger.hilt.compiler)
-    implementation(libs.androidx.appcompat) // Or the direct string: "androidx.appcompat:appcompat:1.6.1"
-    implementation(libs.google.android.material) // Or: "com.google.android.material:material:1.11.0"
-    implementation(libs.google.dagger.hilt.android) // Or: "com.google.dagger:hilt-android:2.48"
-    implementation(libs.androidx.hilt.navigation.compose) // Or: "androidx.hilt:hilt-navigation-compose:1.1.0"dependencies {
-    implementation(libs.google.dagger.hilt.android) // This is for the library, not the plugin
+    implementation(libs.androidx.appcompat)
+    implementation(libs.google.android.material)
+    implementation(libs.google.dagger.hilt.android)
+    implementation(libs.androidx.hilt.navigation.compose)
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 
     //Ditto Wrapper
