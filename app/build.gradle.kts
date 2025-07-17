@@ -18,7 +18,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.quest1pos"
+        applicationId = "com.quest1.demopos"
         minSdk = 28
         targetSdk = 36
         versionCode = 1

@@ -1,4 +1,4 @@
-package com.example.quest1pos
+package com.quest1.demopos
 
 import org.junit.Test
 

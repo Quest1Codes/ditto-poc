@@ -1,59 +1,57 @@
 package com.quest1.demopos.ui.view
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.quest1.demopos.domain.usecase.GetShopItemsUseCase
-import com.quest1.demopos.domain.usecase.ShopItem
+import com.quest1.demopos.data.model.SampleData
+import com.quest1.demopos.domain.usecase.GetSampleDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
+// Wrapper class to hold an item and its quantity in the cart
+data class ShopItemState(
+    val item: SampleData,
+    val quantityInCart: Int = 0
+)
+
+// Restore the full UI state to support the cart
 data class ShopUiState(
-    val items: List<ShopItem> = emptyList(),
+    val items: List<ShopItemState> = emptyList(),
     val cartItemCount: Int = 0,
     val cartTotal: Double = 0.0,
     val isLoading: Boolean = true
 ) {
-    // Computed property to get only items that are in the cart
-    val itemsInCart: List<ShopItem>
+    val itemsInCart: List<ShopItemState>
         get() = items.filter { it.quantityInCart > 0 }
 }
 
 @HiltViewModel
 class ShopViewModel @Inject constructor(
-    private val getShopItemsUseCase: GetShopItemsUseCase
+    private val getSampleDataUseCase: GetSampleDataUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ShopUiState())
     val uiState: StateFlow<ShopUiState> = _uiState.asStateFlow()
 
     init {
-        loadShopItems()
+        loadDittoData()
     }
 
-    private fun loadShopItems() {
-        // This check prevents reloading data if the ViewModel is preserved across navigation
-        if (_uiState.value.items.isEmpty()) {
-            getShopItemsUseCase.execute().onEach { shopItems ->
-                _uiState.update { currentState ->
-                    val total = shopItems.sumOf { it.item.price * it.quantityInCart }
-                    val count = shopItems.sumOf { it.quantityInCart }
-                    currentState.copy(
-                        items = shopItems,
-                        cartTotal = total,
-                        cartItemCount = count,
-                        isLoading = false
-                    )
+    private fun loadDittoData() {
+        getSampleDataUseCase()
+            .onEach { sampleItems ->
+                _uiState.update {
+                    // Map the incoming data to our UI state wrapper
+                    val shopItems = sampleItems.map { ShopItemState(item = it) }
+                    it.copy(items = shopItems, isLoading = false)
                 }
-            }.launchIn(viewModelScope)
-        }
+            }
+            .catch { e -> Log.e("ShopViewModel", "Error loading data", e) }
+            .launchIn(viewModelScope)
     }
 
+    // Restore the cart management functions
     fun updateQuantity(itemId: String, change: Int) {
         _uiState.update { currentState ->
             val newItems = currentState.items.map { shopItem ->
@@ -64,24 +62,15 @@ class ShopViewModel @Inject constructor(
                     shopItem
                 }
             }
-            val total = newItems.sumOf { it.item.price * it.quantityInCart }
+            // Recalculate totals
+            val total = newItems.sumOf { (it.item.price ?: 0.0) * it.quantityInCart }
             val count = newItems.sumOf { it.quantityInCart }
             currentState.copy(items = newItems, cartTotal = total, cartItemCount = count)
         }
     }
 
     fun removeItemFromCart(itemId: String) {
-        _uiState.update { currentState ->
-            val newItems = currentState.items.map { shopItem ->
-                if (shopItem.item.id == itemId) {
-                    shopItem.copy(quantityInCart = 0) // Set quantity to 0 to remove
-                } else {
-                    shopItem
-                }
-            }
-            val total = newItems.sumOf { it.item.price * it.quantityInCart }
-            val count = newItems.sumOf { it.quantityInCart }
-            currentState.copy(items = newItems, cartTotal = total, cartItemCount = count)
-        }
+        // Removing is the same as setting quantity to 0
+        updateQuantity(itemId, Int.MIN_VALUE)
     }
 }
