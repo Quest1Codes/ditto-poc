@@ -1,48 +1,61 @@
+/*
+ * File: app/src/main/java/com/quest1/demopos/data/repository/InventoryRepository.kt
+ * Description: Corrected a ClassCastException when mapping the price field.
+ * - The code now safely handles numeric types from Ditto by casting to `Number`
+ * and then converting to `Double`.
+ */
 package com.quest1.demopos.data.repository
 
-import com.quest1.demopos.data.model.inventory.Inventory
 import com.quest1.demopos.data.model.inventory.Item
-import com.quest1.demopos.data.model.inventory.Supplier
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class InventoryRepository @Inject constructor() {
+class InventoryRepository @Inject constructor(
+    private val dittoRepository: DittoRepository
+) {
 
-    // --- Stub Data ---
-    private val stubItems = listOf(
-        Item(id = "item_burger", itemId = "item_burger", name = "Classic Burger", price = 15.00, description = "A delicious all-beef burger.", category = "Entrees", sku = "SKU1001"),
-        Item(id = "item_fries", itemId = "item_fries", name = "Large Fries", price = 5.00, description = "Crispy golden fries.", category = "Sides", sku = "SKU1002"),
-        Item(id = "item_coffee", itemId = "item_coffee", name = "Latte", price = 6.00, description = "Freshly brewed espresso with steamed milk.", category = "Beverages", sku = "SKU1003"),
-        Item(id = "item_dosa", itemId = "item_dosa", name = "Dosa", price = 60.00, description = "Freshly brewed espresso with steamed milk.", category = "Food", sku = "SKU1004")
-    )
-
-    private val stubInventory = listOf(
-        Inventory(id = 1, itemId = "item_burger", inventoryQuantity = 100, supplierId = "sup_foodco"),
-        Inventory(id = 2, itemId = "item_fries", inventoryQuantity = 250, supplierId = "sup_foodco"),
-        Inventory(id = 3, itemId = "item_coffee", inventoryQuantity = 50, supplierId = "sup_beverages"),
-        Inventory(id = 4, itemId = "item_dosa", inventoryQuantity = 100, supplierId = "sup_beverages")
-    )
-
-    private val stubSuppliers = listOf(
-        Supplier(id = 1, supplierName = "FoodCo Inc.", storeId = 1),
-        Supplier(id = 2, supplierName = "Global Beverages", storeId = 1)
-    )
-
-    // --- Repository Functions ---
-
-    fun getAvailableItems(): Flow<List<Item>> = flow {
-        emit(stubItems)
+    init {
+        val subscriptionQuery = "SELECT * FROM ${Item.COLLECTION_NAME}"
+        dittoRepository.startSubscription(subscriptionQuery)
     }
 
-    fun getInventoryForItem(itemId: String): Flow<Inventory?> = flow {
-        emit(stubInventory.find { it.itemId == itemId })
+    fun getAvailableItems(): Flow<List<Item>> {
+        val query = "SELECT * FROM ${Item.COLLECTION_NAME}"
+        return dittoRepository.observeCollection(query).map { documents ->
+            documents.mapNotNull { docMap ->
+                try {
+                    Item(
+                        // The primary key from Ditto is always `_id`
+                        id = docMap["_id"].toString(),
+                        itemId = docMap["itemId"] as String,
+                        name = docMap["name"] as String,
+                        // CORRECTED LINE: Safely convert any number type to Double.
+                        price = (docMap["price"] as Number).toDouble(),
+                        description = docMap["description"] as String,
+                        category = docMap["category"] as String,
+                        sku = docMap["sku"] as String
+                    )
+                } catch (e: Exception) {
+                    println("Error mapping document: $docMap, error: $e")
+                    null
+                }
+            }
+        }
     }
 
-    fun getSuppliersForStore(storeId: String): Flow<List<Supplier>> = flow {
-        // In a real app, you'd filter by storeId
-        emit(stubSuppliers)
+    suspend fun insertItem(item: Item) {
+        val itemMap = mapOf(
+            "_id" to item.id, // Using _id is best practice for the primary key
+            "itemId" to item.itemId,
+            "name" to item.name,
+            "price" to item.price,
+            "description" to item.description,
+            "category" to item.category,
+            "sku" to item.sku
+        )
+        dittoRepository.upsert(Item.COLLECTION_NAME, itemMap)
     }
 }

@@ -10,3 +10,12 @@ data class Order(
     val currency: String,
     val items: List<OrderItem>
 )
+{
+    companion object {
+        // Define the collection name for consistency
+        const val COLLECTION_NAME = "orders"
+        // Define status constants
+        const val STATUS_PENDING = "PENDING"
+        const val STATUS_COMPLETED = "COMPLETED"
+    }
+}
