@@ -26,7 +26,6 @@ object AppModule {
         return DittoManager(
             context = context,
             dittoAppId = dittoAppId,
-            dittoToken = dittoToken,
             dittoAuthUrl= dittoAuthUrl,
             dittoWsUrl = dittoWsUrl
 
