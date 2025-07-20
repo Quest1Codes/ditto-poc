@@ -81,6 +81,14 @@ jobs:
         run: |
           docker pull $ECR_REGISTRY/$ECR_REPOSITORY_NAME:latest
 
+      - name: Create .env file for Docker Compose
+          # This step runs inside the auth-webhook directory
+        working-directory: ./auth-webhook
+        run: |
+            # Create the .env file and populate it with the secret from GitHub Actions
+            echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" > .env
+            echo ".env file created successfully."
+
       - name: Deploy with Docker Compose
         working-directory: ./auth-webhook
         env:
