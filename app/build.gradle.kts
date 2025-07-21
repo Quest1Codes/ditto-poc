@@ -87,6 +87,7 @@ dependencies {
     implementation(libs.google.dagger.hilt.android) // Or: "com.google.dagger:hilt-android:2.48"
     implementation(libs.androidx.hilt.navigation.compose) // Or: "androidx.hilt:hilt-navigation-compose:1.1.0"dependencies {
     implementation(libs.google.dagger.hilt.android) // This is for the library, not the plugin
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
 
     //Ditto Wrapper
     implementation(project(":ditto-wrapper"))

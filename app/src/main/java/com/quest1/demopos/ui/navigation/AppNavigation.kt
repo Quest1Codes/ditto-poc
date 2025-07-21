@@ -5,7 +5,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.quest1.demopos.ui.view.AnalyticsScreen
 import com.quest1.demopos.ui.view.CartScreen
+import com.quest1.demopos.ui.view.PaymentDashboardScreen
 import com.quest1.demopos.ui.view.PaymentScreen
 import com.quest1.demopos.ui.view.PaymentViewModel
 import com.quest1.demopos.ui.view.ShopScreen
@@ -15,6 +17,10 @@ object AppRoutes {
     const val SHOP = "shop"
     const val CART = "cart"
     const val PAYMENT = "payment"
+
+    // NEW
+    const val ANALYTICS = "analytics"
+    const val PAYMENT_DASHBOARD = "payment_dashboard"
 }
 
 @Composable
@@ -29,7 +35,8 @@ fun AppNavigation() {
                 viewModel = shopViewModel,
                 onNavigateToCart = {
                     navController.navigate(AppRoutes.CART)
-                }
+                },
+                navController
             )
         }
         composable(AppRoutes.CART) {
@@ -57,6 +64,18 @@ fun AppNavigation() {
                         popUpTo(AppRoutes.SHOP) { inclusive = true }
                     }
                 }
+            )
+        }
+
+        composable(AppRoutes.ANALYTICS) {
+            AnalyticsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(AppRoutes.PAYMENT_DASHBOARD) {
+            PaymentDashboardScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }
