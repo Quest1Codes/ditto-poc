@@ -22,8 +22,10 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://ditto.live/maven") }
     }
 }
 
 rootProject.name = "Quest1 Demo POS"
 include(":app")
+include(":ditto-wrapper")

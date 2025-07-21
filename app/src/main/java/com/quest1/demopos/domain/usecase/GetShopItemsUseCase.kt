@@ -1,31 +1,22 @@
+/*
+ * File: app/src/main/java/com/quest1/demopos/domain/usecase/GetShopItemsUseCase.kt
+ * Description: Updated to simplify the logic and remove hardcoded data.
+ * - The `ShopItem` data class is no longer needed here; this logic will move to the ViewModel.
+ * - The use case now focuses solely on fetching the available items from the repository.
+ */
 package com.quest1.demopos.domain.usecase
 
 import com.quest1.demopos.data.model.inventory.Item
 import com.quest1.demopos.data.repository.InventoryRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
-
-// A simple data class to combine an Item with its quantity in the cart
-data class ShopItem(
-    val item: Item,
-    val quantityInCart: Int
-)
 
 class GetShopItemsUseCase @Inject constructor(
     private val inventoryRepository: InventoryRepository
-    // In a real app, you'd inject a CartRepository here to get quantities
 ) {
-    fun execute(): Flow<List<ShopItem>> {
-        val cart = mapOf("item_laptop_stand" to 1)
-
-        return inventoryRepository.getAvailableItems().map { items ->
-            items.map { item ->
-                ShopItem(
-                    item = item,
-                    quantityInCart = cart[item.id] ?: 0
-                )
-            }
-        }
+    // The use case now directly returns the Flow of Items from the repository.
+    // The ViewModel will be responsible for mapping this to its specific UI state.
+    fun execute(): Flow<List<Item>> {
+        return inventoryRepository.getAvailableItems()
     }
 }

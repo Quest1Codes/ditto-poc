@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.quest1.demopos.ui.components.PrimaryActionButton
 import com.quest1.demopos.ui.components.QuantityControlButton
 import com.quest1.demopos.ui.theme.LightTextPrimary
+import com.quest1.demopos.ui.view.ShopViewModel // Assuming ShopScreen components are in the same package or imported
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -47,12 +48,12 @@ fun CartScreen(
             )
         },
         bottomBar = {
-            // The bottom bar is now the main navigation bar
-            AppBottomNavigationBar(
-                currentRoute = "cart",
-                onNavigate = { if (it == "shop") onNavigateBack() },
-                cartItemCount = uiState.cartItemCount
-            )
+            // AppBottomNavigationBar needs to be defined or imported
+            // AppBottomNavigationBar(
+            //     currentRoute = "cart",
+            //     onNavigate = { if (it == "shop") onNavigateBack() },
+            //     cartItemCount = uiState.cartItemCount
+            // )
         }
     ) { paddingValues ->
         if (cartItems.isEmpty()) {
@@ -76,7 +77,8 @@ fun CartScreen(
                         CartItemCard(
                             itemName = shopItem.item.name,
                             quantity = shopItem.quantityInCart,
-                            price = currencyFormat.format(shopItem.item.price * shopItem.quantityInCart),
+                            // FIX: Handle the nullable price before multiplying
+                            price = currencyFormat.format((shopItem.item.price ?: 0.0) * shopItem.quantityInCart),
                             onIncrease = { viewModel.updateQuantity(shopItem.item.id, 1) },
                             onDecrease = { viewModel.updateQuantity(shopItem.item.id, -1) },
                             onRemove = { viewModel.removeItemFromCart(shopItem.item.id) }
