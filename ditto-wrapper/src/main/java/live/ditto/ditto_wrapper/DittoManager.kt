@@ -2,6 +2,8 @@ package live.ditto.ditto_wrapper
 
 import android.content.Context
 import android.util.Log
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import live.ditto.Ditto
 import live.ditto.DittoAuthenticator
 import live.ditto.DittoError
@@ -21,19 +23,23 @@ class DittoManager(
     private val TAG = "DittoManager"
     private var authenticator: DittoAuthenticator? = null
 
-    // Callback handler for Ditto authentication events
+    private val _isAuthenticationRequired = MutableStateFlow(false)
+    val isAuthenticationRequired = _isAuthenticationRequired.asStateFlow()
+
     inner class AuthCallback : DittoAuthenticationCallback {
         override fun authenticationRequired(authenticator: DittoAuthenticator) {
             Log.d(TAG, "Ditto authentication required.")
             this@DittoManager.authenticator = authenticator
+            _isAuthenticationRequired.value = true          // <- move here
         }
 
         override fun authenticationExpiringSoon(
             authenticator: DittoAuthenticator,
             secondsRemaining: Long
         ) {
-            Log.d(TAG, "Ditto token expiring in $secondsRemaining seconds. A new login will be required.")
+            Log.d(TAG, "Ditto token expiring in $secondsRemaining seconds.")
             this@DittoManager.authenticator = authenticator
+            _isAuthenticationRequired.value = true          // <- also here
         }
     }
 
@@ -55,6 +61,7 @@ class DittoManager(
 
             ditto = Ditto(androidDependencies, identity)
             ditto?.smallPeerInfo?.isEnabled = true
+
             ditto?.transportConfig?.connect?.websocketUrls?.add(dittoWsUrl)
 
             ditto?.startSync()
@@ -70,21 +77,21 @@ class DittoManager(
         }
     }
 
-    suspend fun loginWithToken(token: String) {
+    fun provideTokenToAuthenticator(token: String) {
         authenticator?.let {
             try {
-                // Use the authenticator provided by the callback to log in
                 it.login(token, "auth-webhook") { _, err ->
                     if (err != null) {
                         Log.e(TAG, "Ditto login failed: ${err.message}")
                     } else {
                         Log.d(TAG, "Ditto login request completed successfully.")
+                        _isAuthenticationRequired.value = false
                     }
                 }
             } catch (e: DittoError) {
                 Log.e(TAG, "Ditto login failed: ${e.message}", e)
             }
-        } ?: Log.e(TAG, "Authenticator not available. Cannot log in to Ditto.")
+        } ?: Log.e(TAG, "Authenticator not available. ProvideToken called at the wrong time.")
     }
     fun requireDitto(): Ditto {
         return ditto ?: throw DittoNotCreatedException()

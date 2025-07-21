@@ -7,7 +7,7 @@ on:
   push:
     branches:
       - main
-      - auth
+      # - auth
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
