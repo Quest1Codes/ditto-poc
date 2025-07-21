@@ -1,8 +1,5 @@
 # app/config.py
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 class Config:
     """Configuration class to load secrets from environment variables."""

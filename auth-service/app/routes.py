@@ -40,5 +40,5 @@ def login():
         "exp": datetime.now(timezone.utc) + timedelta(hours=8),
     }
     token = jwt.encode(payload, current_app.config["JWT_SECRET_KEY"], algorithm="HS256")
-
+    
     return jsonify({"accessToken": token}), 200

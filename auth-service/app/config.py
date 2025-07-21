@@ -5,9 +5,8 @@ load_dotenv()
 
 
 class Config:
-    SECRET_KEY = os.getenv("SECRET_KEY", "a-default-secret-key-for-dev")
-    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "a-default-jwt-secret-key-for-dev")
-
+    SECRET_KEY = os.getenv("SECRET_KEY")
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
     MONGO_USERNAME = os.getenv("MONGO_INITDB_ROOT_USERNAME")
     MONGO_PASSWORD = os.getenv("MONGO_INITDB_ROOT_PASSWORD")
     MONGO_HOST = os.getenv("MONGO_HOST")
