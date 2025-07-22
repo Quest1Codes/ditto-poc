@@ -37,6 +37,8 @@ android {
         buildConfigField("String", "DITTO_APP_ID", "\"${localProperties.getProperty("DITTO_APP_ID")}\"")
         buildConfigField("String", "DITTO_TOKEN", "\"${localProperties.getProperty("DITTO_TOKEN")}\"")
         buildConfigField("String", "DITTO_AUTH_URL", "\"${localProperties.getProperty("DITTO_AUTH_URL")}\"")
+        buildConfigField("String", "DITTO_WS_URL", "\"${localProperties.getProperty("DITTO_WS_URL")}\"")
+        buildConfigField("String", "AUTH_SERVICE_BASE_URL", "\"${localProperties.getProperty("AUTH_SERVICE_BASE_URL")}\"")
     }
 
     buildTypes {
@@ -61,6 +63,7 @@ android {
 }
 
 dependencies {
+    // AndroidX & Compose
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -69,6 +72,29 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.google.android.material)
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+
+    // Hilt Dependency Injection
+    implementation(libs.google.dagger.hilt.android)
+    kapt(libs.google.dagger.hilt.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
+
+    // Ditto
+    implementation(project(":ditto-wrapper"))
+    implementation("live.ditto:ditto:4.8.1")
+
+    // Network (Retrofit & Moshi)
+    implementation("com.squareup.retrofit2:retrofit:3.0.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.2")
+    implementation("com.squareup.retrofit2:converter-moshi:3.0.0")
+    implementation("com.squareup.moshi:moshi:1.15.0")
+//    kapt("com.squareup.moshi:moshi-kotlin-codegen:1.13.0")
+    // Other
+    implementation("com.auth0.android:jwtdecode:2.0.2")
+
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -76,21 +102,4 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    kapt(libs.google.dagger.hilt.compiler)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.google.android.material)
-    implementation(libs.google.dagger.hilt.android)
-    implementation(libs.androidx.hilt.navigation.compose)
-    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
-    implementation(libs.androidx.appcompat) // Or the direct string: "androidx.appcompat:appcompat:1.6.1"
-    implementation(libs.google.android.material) // Or: "com.google.android.material:material:1.11.0"
-    implementation(libs.google.dagger.hilt.android) // Or: "com.google.dagger:hilt-android:2.48"
-    implementation(libs.androidx.hilt.navigation.compose) // Or: "androidx.hilt:hilt-navigation-compose:1.1.0"dependencies {
-    implementation(libs.google.dagger.hilt.android) // This is for the library, not the plugin
-
-    //Ditto Wrapper
-    implementation(project(":ditto-wrapper"))
-
-    //Ditto
-    implementation("live.ditto:ditto:4.8.1")
 }
