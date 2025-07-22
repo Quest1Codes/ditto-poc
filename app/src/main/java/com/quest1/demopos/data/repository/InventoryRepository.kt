@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
+import android.util.Log
+
 
 @Singleton
 class InventoryRepository @Inject constructor(
@@ -39,7 +41,7 @@ class InventoryRepository @Inject constructor(
                         sku = docMap["sku"] as String
                     )
                 } catch (e: Exception) {
-                    println("Error mapping document: $docMap, error: $e")
+                    Log.e("InventoryRepository", "Error mapping document: $docMap", e)
                     null
                 }
             }
