@@ -38,6 +38,7 @@ android {
         buildConfigField("String", "DITTO_TOKEN", "\"${localProperties.getProperty("DITTO_TOKEN")}\"")
         buildConfigField("String", "DITTO_AUTH_URL", "\"${localProperties.getProperty("DITTO_AUTH_URL")}\"")
         buildConfigField("String", "DITTO_WS_URL", "\"${localProperties.getProperty("DITTO_WS_URL")}\"")
+        buildConfigField("String", "AUTH_SERVICE_BASE_URL", "\"${localProperties.getProperty("AUTH_SERVICE_BASE_URL")}\"")
     }
 
     buildTypes {
