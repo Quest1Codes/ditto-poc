@@ -8,7 +8,9 @@ import com.quest1.demopos.data.repository.DittoRepository
 import com.quest1.demopos.data.repository.OrderRepository
 import com.quest1.demopos.data.repository.PaymentRepository
 import kotlinx.coroutines.flow.first
-import java.util.UUID
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 /**
@@ -47,6 +49,9 @@ class ProcessPaymentUseCase @Inject constructor(
             val endTime = System.currentTimeMillis()
             val latency = endTime - startTime
 
+            // Format timestamp for logging
+            val readableTimestamp = SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault()).format(Date(startTime))
+
             // 5. Create a transaction log.
             val transaction = Transaction(
                 id = response.transactionId,
@@ -68,7 +73,7 @@ class ProcessPaymentUseCase @Inject constructor(
                 Acquirer ID: ${transaction.acquirerId}
                 Status: ${transaction.status}
                 Total Amount: ${transaction.amount}
-                Timestamp: ${transaction.createdAt}
+                Timestamp: $readableTimestamp
                 Latency: ${transaction.latencyMs}ms
                 Failure Reason: ${transaction.failureReason ?: "N/A"}
             """.trimIndent())

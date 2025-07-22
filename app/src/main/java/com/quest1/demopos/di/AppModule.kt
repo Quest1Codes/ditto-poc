@@ -1,8 +1,6 @@
 package com.quest1.demopos.di
 
 import android.content.Context
-// ADDED the missing import for DittoRepository
-import com.quest1.demopos.data.repository.DittoRepository
 import com.quest1.demopos.BuildConfig
 import dagger.Module
 import dagger.Provides
@@ -31,5 +29,4 @@ object AppModule {
 
         )
     }
-
 }

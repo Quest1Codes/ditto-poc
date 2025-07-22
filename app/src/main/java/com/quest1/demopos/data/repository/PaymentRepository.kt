@@ -1,7 +1,6 @@
 package com.quest1.demopos.data.repository
 
 import com.quest1.demopos.data.model.payment.Gateway
-import com.quest1.demopos.data.model.payment.PaymentMethod
 import com.quest1.demopos.data.network.PaymentRequest
 import com.quest1.demopos.data.network.PaymentResponse
 import kotlinx.coroutines.delay
@@ -25,26 +24,25 @@ class PaymentRepository @Inject constructor() {
         "Gateway timeout"
     )
 
-    // --- Stub Data ---
-    // A list of famous international acquirers.
+    // --- Stub Data with updated IDs and Endpoints ---
     private val stubGateways = listOf(
         Gateway(
-            id = "stripe",
+            id = "stripe21", // New ID format
             name = "Stripe",
-            apiEndpoints = mapOf("pay" to "https://api.example.com/stripe/pay"),
-            supportedPaymentMethods = listOf(PaymentMethod.VISA, PaymentMethod.MASTERCARD, PaymentMethod.AMEX)
+            apiEndpoint = "https://payment-process/stripe21/pay", // New URL format
+            supportedPaymentMethod = "Credit Card"
         ),
         Gateway(
-            id = "adyen",
+            id = "adyen34", // New ID format
             name = "Adyen",
-            apiEndpoints = mapOf("pay" to "https://api.example.com/adyen/pay"),
-            supportedPaymentMethods = listOf(PaymentMethod.VISA, PaymentMethod.MASTERCARD)
+            apiEndpoint = "https://payment-process/adyen34/pay", // New URL format
+            supportedPaymentMethod = "Credit Card"
         ),
         Gateway(
-            id = "paypal",
+            id = "paypal56", // New ID format
             name = "PayPal",
-            apiEndpoints = mapOf("pay" to "https://api.example.com/paypal/pay"),
-            supportedPaymentMethods = listOf(PaymentMethod.PAYPAL_CREDIT, PaymentMethod.VISA)
+            apiEndpoint = "https://payment-process/paypal56/pay", // New URL format
+            supportedPaymentMethod = "Credit Card"
         )
     )
 
@@ -60,10 +58,11 @@ class PaymentRepository @Inject constructor() {
      */
     suspend fun processPayment(acquirer: Gateway, request: PaymentRequest): PaymentResponse {
         // Simulate network latency with a random delay.
-        val waitTime = Random.nextLong(500, 3000)
+        val waitTime = Random.nextLong(500, 2000)
         delay(waitTime)
 
-        val isSuccess = Random.nextBoolean() // Randomly decide if the payment succeeds.
+        // Success probability is now 80% (fails if random number is 1 or 2)
+        val isSuccess = Random.nextInt(1, 11) > 2
 
         return if (isSuccess) {
             PaymentResponse(
