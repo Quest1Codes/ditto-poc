@@ -94,4 +94,5 @@ dependencies {
 
     //Ditto
     implementation("live.ditto:ditto:4.8.1")
+    implementation("live.ditto:ditto-tools-android:4.0.2")
 }

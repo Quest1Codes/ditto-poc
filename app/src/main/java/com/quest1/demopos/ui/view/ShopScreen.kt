@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Analytics
+import androidx.compose.material.icons.filled.AutoGraph
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
@@ -79,6 +80,19 @@ fun ShopScreen(
                             onClick = {
                                 expanded = false
                                 navController.navigate(AppRoutes.PAYMENT_DASHBOARD)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Presence Viewer", style = MaterialTheme.typography.bodySmall, color = Color.Black) },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Filled.AutoGraph,
+                                    contentDescription = "Presence Icon"
+                                )
+                            },
+                            onClick = {
+                                expanded = false
+                                navController.navigate(AppRoutes.PRESENCE_VIEWER)
                             }
                         )
                     }

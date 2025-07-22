@@ -10,6 +10,7 @@ import com.quest1.demopos.ui.view.CartScreen
 import com.quest1.demopos.ui.view.PaymentDashboardScreen
 import com.quest1.demopos.ui.view.PaymentScreen
 import com.quest1.demopos.ui.view.PaymentViewModel
+import com.quest1.demopos.ui.view.PresenceViewer
 import com.quest1.demopos.ui.view.ShopScreen
 import com.quest1.demopos.ui.view.ShopViewModel
 
@@ -21,6 +22,7 @@ object AppRoutes {
     // NEW
     const val ANALYTICS = "analytics"
     const val PAYMENT_DASHBOARD = "payment_dashboard"
+    const val PRESENCE_VIEWER = "presence_viewer"
 }
 
 @Composable
@@ -75,6 +77,12 @@ fun AppNavigation() {
 
         composable(AppRoutes.PAYMENT_DASHBOARD) {
             PaymentDashboardScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(AppRoutes.PRESENCE_VIEWER) {
+            PresenceViewer(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
