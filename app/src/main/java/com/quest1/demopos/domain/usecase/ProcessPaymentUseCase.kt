@@ -1,6 +1,7 @@
 package com.quest1.demopos.domain.usecase.order
 
 import android.util.Log
+import com.quest1.demopos.data.model.orders.Order
 import com.quest1.demopos.data.model.orders.Transaction
 import com.quest1.demopos.data.network.PaymentRequest
 import com.quest1.demopos.data.network.PaymentResponse
@@ -48,6 +49,14 @@ class ProcessPaymentUseCase @Inject constructor(
             val response = paymentRepository.processPayment(selectedAcquirer, paymentRequest)
             val endTime = System.currentTimeMillis()
             val latency = endTime - startTime
+
+            // *** THIS IS THE FIX ***
+            // If the payment was successful, update the order status to "COMPLETED".
+            // This will effectively clear the cart.
+            if (response.status == "SUCCESS") {
+                val completedOrder = activeOrder.copy(status = Order.STATUS_COMPLETED)
+                orderRepository.upsertOrder(completedOrder)
+            }
 
             // Format timestamp for logging
             val readableTimestamp = SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault()).format(Date(startTime))
