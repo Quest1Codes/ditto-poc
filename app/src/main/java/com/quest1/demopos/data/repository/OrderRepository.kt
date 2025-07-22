@@ -34,7 +34,6 @@ class OrderRepository @Inject constructor(
                         OrderItem(
                             itemId = itemMap["itemId"] as String,
                             name = itemMap["name"] as String,
-                            // FIX: Cast to Number first to handle both Integer and Long safely.
                             quantity = (itemMap["quantity"] as Number).toInt(),
                             cost = (itemMap["cost"] as Number).toInt()
                         )
@@ -45,7 +44,6 @@ class OrderRepository @Inject constructor(
                         storeId = docMap["storeId"] as String,
                         status = docMap["status"] as String,
                         totalAmount = (docMap["totalAmount"] as Number).toDouble(),
-                        // FIX: Cast to Number first to handle both Integer and Long safely.
                         createdAt = (docMap["createdAt"] as Number).toLong(),
                         currency = docMap["currency"] as String,
                         items = itemsList
@@ -59,10 +57,25 @@ class OrderRepository @Inject constructor(
     }
 
     /**
-     * Inserts or updates an Order in the database.
+     * Inserts a new Order into the database.
      */
-    suspend fun upsertOrder(order: Order) {
-        // Convert the nested list of OrderItems into a list of maps
+    suspend fun saveOrder(order: Order) {
+        val orderMap = convertOrderToMap(order)
+        dittoRepository.upsert(Order.COLLECTION_NAME, orderMap)
+    }
+
+    /**
+     * Updates an existing Order in the database.
+     */
+    suspend fun updateOrder(order: Order) {
+        val orderMap = convertOrderToMap(order)
+        dittoRepository.upsert(Order.COLLECTION_NAME, orderMap)
+    }
+
+    /**
+     * Converts an Order data class to a Map for Ditto.
+     */
+    private fun convertOrderToMap(order: Order): Map<String, Any?> {
         val orderItemsAsMaps = order.items.map {
             mapOf(
                 "itemId" to it.itemId,
@@ -72,7 +85,7 @@ class OrderRepository @Inject constructor(
             )
         }
 
-        val orderMap = mapOf(
+        return mapOf(
             "_id" to order.id,
             "terminalId" to order.terminalId,
             "storeId" to order.storeId,
@@ -82,6 +95,5 @@ class OrderRepository @Inject constructor(
             "currency" to order.currency,
             "items" to orderItemsAsMaps
         )
-        dittoRepository.upsert(Order.COLLECTION_NAME, orderMap)
     }
 }
