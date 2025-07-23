@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import java.util.UUID
 import javax.inject.Inject
+import java.util.Date
 
 /**
  * Use case to get a real-time stream of the current active order.
@@ -40,14 +41,16 @@ class UpdateOrderItemQuantityUseCase @Inject constructor(
                 storeId = "store_01",   // Example value
                 status = Order.STATUS_PENDING,
                 totalAmount = 0.0,
-                createdAt = System.currentTimeMillis(),
+                createdAt = Date(System.currentTimeMillis()),
                 currency = "USD",
                 items = emptyList()
             )
         }
 
         // 2. Find the inventory item to get its price and name.
-        val inventoryItem = inventoryRepository.getAvailableItems().firstOrNull()?.find { it.id == itemId }
+        // FIXED: Use firstOrNull with predicate directly on the items list
+        val availableItems = inventoryRepository.getAvailableItems().firstOrNull()
+        val inventoryItem = availableItems?.firstOrNull { it.id == itemId }
             ?: return // Cannot proceed if the item doesn't exist in inventory
 
         // 3. Update the items list within the order.

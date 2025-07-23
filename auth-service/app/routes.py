@@ -37,8 +37,9 @@ def login():
         "sub": str(user["_id"]),
         "role": user["role"],
         "iat": datetime.now(timezone.utc),
-        "exp": datetime.now(timezone.utc) + timedelta(hours=8),
+        "exp": datetime.now(timezone.utc)
+        + timedelta(hours=current_app.config["JWT_EXPIRATION_HOURS"]),
     }
     token = jwt.encode(payload, current_app.config["JWT_SECRET_KEY"], algorithm="HS256")
-    
+
     return jsonify({"accessToken": token}), 200
