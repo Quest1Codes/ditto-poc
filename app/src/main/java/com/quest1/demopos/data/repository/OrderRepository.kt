@@ -1,9 +1,11 @@
 package com.quest1.demopos.data.repository
 
+
 import com.quest1.demopos.data.model.orders.Order
 import com.quest1.demopos.data.model.orders.OrderItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.util.Date
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -44,7 +46,7 @@ class OrderRepository @Inject constructor(
                         storeId = docMap["storeId"] as String,
                         status = docMap["status"] as String,
                         totalAmount = (docMap["totalAmount"] as Number).toDouble(),
-                        createdAt = (docMap["createdAt"] as Number).toLong(),
+                        createdAt = Date((docMap["createdAt"] as Number).toLong()),
                         currency = docMap["currency"] as String,
                         items = itemsList
                     )
@@ -84,14 +86,13 @@ class OrderRepository @Inject constructor(
                 "cost" to it.cost
             )
         }
-
         return mapOf(
             "_id" to order.id,
             "terminalId" to order.terminalId,
             "storeId" to order.storeId,
             "status" to order.status,
             "totalAmount" to order.totalAmount,
-            "createdAt" to order.createdAt,
+            "createdAt" to order.createdAt.time, // Convert Date to Long for storage
             "currency" to order.currency,
             "items" to orderItemsAsMaps
         )
