@@ -1,6 +1,7 @@
 package com.quest1.demopos.data.repository
 
 
+import android.util.Log // 1. Add Log import
 import com.quest1.demopos.data.model.orders.Order
 import com.quest1.demopos.data.model.orders.OrderItem
 import kotlinx.coroutines.flow.Flow
@@ -13,6 +14,8 @@ import javax.inject.Singleton
 class OrderRepository @Inject constructor(
     private val dittoRepository: DittoRepository
 ) {
+    // 2. Define a TAG for logging
+    private val TAG = "OrderRepository"
 
     init {
         // Start a subscription to sync all order data from the Ditto cloud.
@@ -51,7 +54,8 @@ class OrderRepository @Inject constructor(
                         items = itemsList
                     )
                 } catch (e: Exception) {
-                    println("Error mapping order document: $docMap, error: $e")
+                    // 3. Replace println with Log.e for better error logging
+                    Log.e(TAG, "Error mapping order document: $docMap", e)
                     null
                 }
             }
