@@ -14,11 +14,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.quest1.demopos.ui.theme.LightTextPrimary
-
-// --- Buttons ---
+import com.quest1.demopos.R
 
 @Composable
 fun PrimaryActionButton(
@@ -65,7 +65,7 @@ fun QuantityControlButton(
             enabled = quantity > 0
         ) {
             Icon(
-                imageVector = Icons.Outlined.Clear,
+                painter = painterResource(R.drawable.remove_24px),
                 contentDescription = "Decrease Quantity",
                 tint = Color.White
             )

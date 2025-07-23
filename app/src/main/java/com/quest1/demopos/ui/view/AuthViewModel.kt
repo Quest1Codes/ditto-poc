@@ -39,7 +39,7 @@ class AuthViewModel @Inject constructor(
             ) { isRequired, token ->
                 Log.d("AuthViewModel", "combine: isRequired=$isRequired, token=${token != null}")
                 if (isRequired && token != null) {
-                    Log.d("AuthViewModel", "Ditto requires auth and we have a token. Providing it now.")
+                    Log.d("AuthViewModel", "Ditto requires auth and we have a token=$token. Providing it now.")
                     dittoManager.provideTokenToAuthenticator(token)
                 }
             }.collect()

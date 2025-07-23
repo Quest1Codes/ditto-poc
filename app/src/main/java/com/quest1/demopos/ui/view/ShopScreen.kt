@@ -22,6 +22,7 @@ import com.quest1.demopos.ui.components.ProductItemCard
 import com.quest1.demopos.ui.theme.LightTextPrimary
 import java.text.NumberFormat
 import java.util.Locale
+import com.quest1.demopos.R // Make sure to import your R file
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

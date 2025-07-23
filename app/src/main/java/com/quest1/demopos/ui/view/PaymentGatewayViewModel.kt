@@ -10,15 +10,17 @@ import java.util.Locale
 import javax.inject.Inject
 
 data class PaymentGatewayUiState(
+    // Data for the top summary card
     val cardHolderName: String = "Jonathan Michael",
     val last4CardDigits: String = "3456",
-    val company: String = "MyShop",
+    val company: String = "Quest1",
     val orderNumber: String = "",
     val productSummary: String = "Shopping Cart",
     val vatAmount: String = "$29.99",
-    val totalAmount: String = "0.00",
-    val totalAmountMajor: String = "150",
-    val totalAmountMinor: String = "97",
+    val totalAmountMajor: String = "21",
+    val totalAmountMinor: String = "00",
+
+    // State for the input fields
     val cardNumber: String = "2412 •••• •••• ••••",
     val cvv: String = "",
     val expiryMonth: String = "",
@@ -36,13 +38,14 @@ class PaymentGatewayViewModel @Inject constructor(
     val uiState: State<PaymentGatewayUiState> = _uiState
 
     init {
+        // Retrieve total amount and order number passed from the cart screen
         val totalAmount = savedStateHandle.get<String>("totalAmount")?.toDoubleOrNull() ?: 0.0
         val orderNumber = savedStateHandle.get<String>("orderNumber") ?: "N/A"
-        val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "US"))
-        val formattedTotal = currencyFormat.format(totalAmount).removePrefix("$")
+
+        val formattedTotal = NumberFormat.getCurrencyInstance(Locale("en", "US"))
+            .format(totalAmount).removePrefix("$")
 
         _uiState.value = _uiState.value.copy(
-            totalAmount = formattedTotal,
             totalAmountMajor = formattedTotal.substringBefore('.'),
             totalAmountMinor = formattedTotal.substringAfter('.', "00"),
             orderNumber = orderNumber
@@ -78,7 +81,7 @@ class PaymentGatewayViewModel @Inject constructor(
     }
 
     fun onEditCardNumber(isEditable: Boolean) {
-        val currentCardNumber = if(isEditable) "" else "2412 •••• •••• ••••"
+        val currentCardNumber = if (isEditable) "" else "2412 •••• •••• ••••"
         _uiState.value = _uiState.value.copy(
             isCardNumberEditable = isEditable,
             cardNumber = currentCardNumber

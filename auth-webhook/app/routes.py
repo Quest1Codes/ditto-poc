@@ -11,27 +11,10 @@ def get_permissions_for_role(role: str, user_id: str) -> dict:
     Returns a permissions dictionary based on the user's role.
     Permissions are structured according to Ditto's requirements.
     """
-    if role == "manager":
-        return {
-            "read": {"everything": True, "queriesByCollection": {}},
-            "write": {"everything": True, "queriesByCollection": {}},
-        }
-    elif role == "cashier":
-        return {
-            "read": {
-                "everything": False,
-                "queriesByCollection": {"items": ["true"], "orders": ["true"]},
-            },
-            "write": {
-                "everything": False,
-                "queriesByCollection": {"orders": [f"_id.createdBy == '{user_id}'"]},
-            },
-        }
-    else:
-        return {
-            "read": {"everything": False, "queriesByCollection": {}},
-            "write": {"everything": False, "queriesByCollection": {}},
-        }
+    return {
+        "read": {"everything": True, "queriesByCollection": {}},
+        "write": {"everything": True, "queriesByCollection": {}},
+    }
 
 
 @bp.route("/auth", methods=["POST"])

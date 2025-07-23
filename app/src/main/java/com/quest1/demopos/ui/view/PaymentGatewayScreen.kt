@@ -1,5 +1,6 @@
 package com.quest1.demopos.ui.view
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -8,15 +9,14 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Clear
-//import androidx.compose.material.icons.filled.CreditCard
-import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -24,9 +24,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.quest1.demopos.R
 import com.quest1.demopos.ui.components.PrimaryActionButton
 import com.quest1.demopos.ui.theme.LightSurface
-import com.quest1.demopos.ui.theme.PrimaryAction
 import com.quest1.demopos.ui.theme.Success
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,22 +47,19 @@ fun PaymentGatewayScreen(
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
-                actions = {
-                    TimerChip()
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+                actions = { TimerChip() }
             )
         },
         bottomBar = {
-            PrimaryActionButton(
-                text = "Pay Now",
-                onClick = onPayNowClicked,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            )
+            Column(modifier = Modifier.padding(16.dp)) {
+                SecurityMessage()
+                Spacer(modifier = Modifier.height(16.dp))
+                PrimaryActionButton(
+                    text = "Pay Now",
+                    onClick = onPayNowClicked,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     ) { paddingValues ->
         Column(
@@ -76,22 +73,29 @@ fun PaymentGatewayScreen(
             Spacer(modifier = Modifier.height(24.dp))
             PaymentDetailsForm(viewModel)
             Spacer(modifier = Modifier.height(24.dp))
-            SecurityMessage()
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
+
 @Composable
 fun TimerChip() {
-    Box(
+    Row(
         modifier = Modifier
             .padding(end = 16.dp)
             .clip(RoundedCornerShape(50))
-            .background(MaterialTheme.colorScheme.onBackground)
-            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .background(Color.Black)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text("03:19", color = MaterialTheme.colorScheme.background, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Icon(
+            painter = painterResource(id = R.drawable.timer_24px),
+            contentDescription = "Timer",
+            tint = Color.White,
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text("03:19", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -99,14 +103,15 @@ fun TimerChip() {
 fun OrderSummaryCard(uiState: PaymentGatewayUiState) {
     Card(
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            // Card Holder Info
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    imageVector = Icons.Default.Clear,
-                    contentDescription = "Card",
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close",
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -115,28 +120,24 @@ fun OrderSummaryCard(uiState: PaymentGatewayUiState) {
                     Text("•••• ${uiState.last4CardDigits}")
                 }
                 Text("09/22", style = MaterialTheme.typography.bodySmall)
-                Spacer(modifier = Modifier.width(4.dp))
-                Box(
-                    modifier = Modifier
-                        .background(PrimaryAction, RoundedCornerShape(4.dp))
-                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                ) {
-                    Text("MC", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Image(
+                    painter = painterResource(id = R.drawable.mastercard_logo),
+                    contentDescription = "Mastercard Logo",
+                    modifier = Modifier.height(24.dp)
+                )
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Divider()
-            Spacer(modifier = Modifier.height(16.dp))
+            Divider(modifier = Modifier.padding(vertical = 16.dp))
 
+            // Order Details
             SummaryRow("Company", uiState.company)
             SummaryRow("Order Number", uiState.orderNumber)
             SummaryRow("Product", uiState.productSummary)
             SummaryRow("VAT (20%)", uiState.vatAmount)
 
-            Spacer(modifier = Modifier.height(16.dp))
-            Divider()
-            Spacer(modifier = Modifier.height(16.dp))
+            Divider(modifier = Modifier.padding(vertical = 16.dp))
 
+            // Total Amount
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -198,12 +199,13 @@ fun PaymentDetailsForm(viewModel: PaymentGatewayViewModel) {
             shape = RoundedCornerShape(12.dp),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             readOnly = !uiState.isCardNumberEditable,
+            leadingIcon = { Icon(painterResource(id = R.drawable.credit_card_24px), "Card") },
             trailingIcon = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Edit", style = MaterialTheme.typography.bodySmall, color = if(uiState.isCardNumberEditable) PrimaryAction else Color.Gray)
+                    Text("Edit", style = MaterialTheme.typography.bodySmall)
                     Switch(
                         checked = uiState.isCardNumberEditable,
-                        onCheckedChange = { viewModel.onEditCardNumber(it) },
+                        onCheckedChange = { viewModel.onEditCardNumber(it) }
                     )
                 }
             },
@@ -229,6 +231,7 @@ fun PaymentDetailsForm(viewModel: PaymentGatewayViewModel) {
                     onValueChange = viewModel::onCvvChanged,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
+                    leadingIcon = { Icon(painterResource(id = R.drawable.pin_24px), "CVV") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = LightSurface,
@@ -239,6 +242,7 @@ fun PaymentDetailsForm(viewModel: PaymentGatewayViewModel) {
                     placeholder = { Text("327", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(), color = Color.LightGray)}
                 )
             }
+
             // Expiry Date
             Column(modifier = Modifier.weight(1f)) {
                 Text("Expiry Date", fontWeight = FontWeight.SemiBold)
@@ -291,6 +295,7 @@ fun PaymentDetailsForm(viewModel: PaymentGatewayViewModel) {
             onValueChange = viewModel::onPasswordChanged,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
+            leadingIcon = { Icon(painterResource(id = R.drawable.key_24px), "Password") },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             colors = TextFieldDefaults.colors(
@@ -314,7 +319,7 @@ fun SecurityMessage() {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        Icon(imageVector = Icons.Outlined.Lock, contentDescription = "Secure", tint = Success)
+        Icon(painter = painterResource(id = R.drawable.shield_24px), contentDescription = "Secure", tint = Success)
         Spacer(modifier = Modifier.width(8.dp))
         Text("Your payment information is encrypted and secure", style = MaterialTheme.typography.bodySmall)
     }

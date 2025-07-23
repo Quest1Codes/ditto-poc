@@ -1,12 +1,10 @@
 name: Ditto Auth Webhook - CI/CD Pipeline
 
 on:
-  pull_request:
-    branches:
-      - main
   push:
     branches:
       - main
+      - gateway_ui
       # - auth
 
 concurrency:
