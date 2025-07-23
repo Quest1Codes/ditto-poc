@@ -12,6 +12,6 @@ class Config:
     MONGO_HOST = os.getenv("MONGO_HOST")
     MONGO_PORT = os.getenv("MONGO_PORT")
     MONGO_DB_NAME = os.getenv("MONGO_DB_NAME")
-
+    JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", 1))
     MONGO_URI = f"mongodb://{MONGO_USERNAME}:{MONGO_PASSWORD}@{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB_NAME}?authSource=admin"
     print(f"Mongo URI: {MONGO_URI}")

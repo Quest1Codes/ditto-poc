@@ -8,12 +8,9 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.quest1.demopos.ui.view.*
+import androidx.navigation.navArgument
 
-/**
- * Defines the routes for the application.
- */
 object AppRoutes {
     const val AUTH = "auth"
     const val SHOP = "shop"
@@ -22,24 +19,16 @@ object AppRoutes {
     const val PAYMENT = "payment"
 }
 
-/**
- * The main navigation component for the application.
- * Manages the navigation between different screens
- */
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
     // The ShopViewModel is shared between the Shop and Cart screens
     val shopViewModel: ShopViewModel = hiltViewModel()
 
-    // The startDestination is now the authentication screen.
-    // The NavHost defines the navigation graph.
     NavHost(navController = navController, startDestination = AppRoutes.AUTH) {
         composable(AppRoutes.AUTH) {
             AuthScreen(
                 onLoginSuccess = { role ->
-                    // After a successful login, navigate to the main shop screen.
-                    // The back stack is cleared to prevent the user from going back to the login screen.
                     navController.navigate(AppRoutes.SHOP) {
                         popUpTo(AppRoutes.AUTH) { inclusive = true }
                     }
@@ -55,7 +44,6 @@ fun AppNavigation() {
                 }
             )
         }
-
         composable(AppRoutes.CART) {
             val uiState = shopViewModel.uiState.collectAsState().value
             CartScreen(
@@ -88,7 +76,6 @@ fun AppNavigation() {
                 }
             )
         }
-
         composable(AppRoutes.PAYMENT) {
             val paymentViewModel: PaymentViewModel = hiltViewModel()
             PaymentScreen(
@@ -98,6 +85,7 @@ fun AppNavigation() {
                     navController.popBackStack()
                 },
                 onNavigateHome = {
+                    // Navigate back to the shop screen, clearing the back stack
                     navController.navigate(AppRoutes.SHOP) {
                         popUpTo(AppRoutes.SHOP) { inclusive = true }
                     }
