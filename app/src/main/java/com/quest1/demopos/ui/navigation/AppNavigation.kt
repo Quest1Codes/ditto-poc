@@ -5,16 +5,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.quest1.demopos.ui.view.AnalyticsScreen
-import com.quest1.demopos.ui.view.CartScreen
-import com.quest1.demopos.ui.view.PaymentDashboardScreen
-import com.quest1.demopos.ui.view.PaymentScreen
-import com.quest1.demopos.ui.view.PaymentViewModel
-import com.quest1.demopos.ui.view.PresenceViewer
-import com.quest1.demopos.ui.view.ShopScreen
-import com.quest1.demopos.ui.view.ShopViewModel
+import com.quest1.demopos.ui.view.*
 
+/**
+ * Defines the routes for the application.
+ */
 object AppRoutes {
+    const val AUTH = "auth"
     const val SHOP = "shop"
     const val CART = "cart"
     const val PAYMENT = "payment"
@@ -25,13 +22,32 @@ object AppRoutes {
     const val PRESENCE_VIEWER = "presence_viewer"
 }
 
+/**
+ * The main navigation component for the application.
+ * Manages the navigation between different screens.
+ */
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
+
     // The ShopViewModel is shared between the Shop and Cart screens
     val shopViewModel: ShopViewModel = hiltViewModel()
 
-    NavHost(navController = navController, startDestination = AppRoutes.SHOP) {
+    // The NavHost defines the navigation graph.
+    // The startDestination is now the authentication screen.
+    NavHost(navController = navController, startDestination = AppRoutes.AUTH) {
+        composable(AppRoutes.AUTH) {
+            AuthScreen(
+                onLoginSuccess = { role ->
+                    // After a successful login, navigate to the main shop screen.
+                    // The back stack is cleared to prevent the user from going back to the login screen.
+                    navController.navigate(AppRoutes.SHOP) {
+                        popUpTo(AppRoutes.AUTH) { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable(AppRoutes.SHOP) {
             ShopScreen(
                 viewModel = shopViewModel,
@@ -41,6 +57,7 @@ fun AppNavigation() {
                 navController
             )
         }
+
         composable(AppRoutes.CART) {
             CartScreen(
                 viewModel = shopViewModel,
@@ -52,6 +69,7 @@ fun AppNavigation() {
                 }
             )
         }
+
         composable(AppRoutes.PAYMENT) {
             val paymentViewModel: PaymentViewModel = hiltViewModel()
             PaymentScreen(

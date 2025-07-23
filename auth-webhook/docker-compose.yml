@@ -1,0 +1,12 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  ditto-webhook:
+    build: .
+    container_name: ditto_auth_webhook
+    ports:
+      - "8004:8004"
+    env_file:
+      - .env
+    restart: unless-stopped
