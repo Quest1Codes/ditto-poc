@@ -4,10 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.quest1.demopos.domain.usecase.order.ProcessPaymentUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -28,25 +30,25 @@ data class PaymentUiState(
 
 @HiltViewModel
 class PaymentViewModel @Inject constructor(
-    private val processPaymentUseCase: ProcessPaymentUseCase // Inject the use case
+    private val processPaymentUseCase: ProcessPaymentUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PaymentUiState())
     val uiState: StateFlow<PaymentUiState> = _uiState.asStateFlow()
 
+    // Channel for one-time navigation events
+    private val _navigationEvent = Channel<Unit>()
+    val navigationEvent = _navigationEvent.receiveAsFlow()
+
+
     fun startPaymentProcess() {
         viewModelScope.launch {
-            // Stage 1: Initiating
             _uiState.update { it.copy(status = PaymentStatus.INITIATING) }
-            delay(1500) // Simulate initial setup time
+            delay(1500)
 
-            // Stage 2: Processing
             _uiState.update { it.copy(status = PaymentStatus.PROCESSING) }
-
-            // Execute the payment logic via the use case
             val result = processPaymentUseCase.execute()
 
-            // Stage 3: Success or Failure
             result.onSuccess { response ->
                 if (response.status == "SUCCESS") {
                     _uiState.update { it.copy(status = PaymentStatus.SUCCESSFUL) }
@@ -72,8 +74,8 @@ class PaymentViewModel @Inject constructor(
     fun startRedirectHome() {
         viewModelScope.launch {
             _uiState.update { it.copy(status = PaymentStatus.REDIRECTING) }
-            delay(3000) // Simulate redirect delay
-            // In a real app, navigation would be triggered here.
+            delay(2000) // Keep a short delay to show the redirecting message
+            _navigationEvent.send(Unit) // Signal navigation
         }
     }
 

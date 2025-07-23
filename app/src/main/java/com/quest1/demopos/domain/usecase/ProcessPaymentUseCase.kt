@@ -1,25 +1,24 @@
 package com.quest1.demopos.domain.usecase.order
 
 import android.util.Log
+import com.quest1.demopos.data.model.orders.Order
 import com.quest1.demopos.data.model.orders.Transaction
+import com.quest1.demopos.data.model.payment.Gateway // <-- IMPORT a
 import com.quest1.demopos.data.network.PaymentRequest
 import com.quest1.demopos.data.network.PaymentResponse
-import com.quest1.demopos.data.repository.DittoRepository
 import com.quest1.demopos.data.repository.OrderRepository
 import com.quest1.demopos.data.repository.PaymentRepository
-import kotlinx.coroutines.flow.first
-import java.util.UUID
+import com.quest1.demopos.data.repository.TransactionRepository
+import kotlinx.coroutines.flow.first // <-- IMPORT b
+import java.util.Date
+import java.text.SimpleDateFormat
+import java.util.Locale
 import javax.inject.Inject
 
-/**
- * Use case to process a payment for the active order.
- * It selects a random acquirer, simulates the transaction, logs the result,
- * and returns the payment response.
- */
 class ProcessPaymentUseCase @Inject constructor(
     private val orderRepository: OrderRepository,
     private val paymentRepository: PaymentRepository,
-    private val dittoRepository: DittoRepository
+    private val transactionRepository: TransactionRepository
 ) {
     suspend fun execute(): Result<PaymentResponse> {
         return try {
@@ -27,16 +26,14 @@ class ProcessPaymentUseCase @Inject constructor(
             val activeOrder = orderRepository.observeActiveOrder().first()
                 ?: return Result.failure(Exception("No active order found."))
 
-            // 2. Get the list of available payment gateways.
+            // 2. Get available payment gateways.
             val gateways = paymentRepository.getAvailableGateways().first()
             if (gateways.isEmpty()) {
                 return Result.failure(Exception("No payment gateways available."))
             }
 
-            // 3. Choose a random acquirer.
+            // 3. Choose a random acquirer and process payment.
             val selectedAcquirer = gateways.random()
-
-            // 4. Start the timestamp and process the payment.
             val startTime = System.currentTimeMillis()
             val paymentRequest = PaymentRequest(
                 orderId = activeOrder.id,
@@ -47,12 +44,12 @@ class ProcessPaymentUseCase @Inject constructor(
             val endTime = System.currentTimeMillis()
             val latency = endTime - startTime
 
-            // 5. Create a transaction log.
+            // 4. Create a transaction record from the response.
             val transaction = Transaction(
                 id = response.transactionId,
                 orderId = activeOrder.id,
-                acquirerId = selectedAcquirer.id,
-                acquirerName = selectedAcquirer.name,
+                acquirerId = selectedAcquirer.id, // This will now resolve correctly
+                acquirerName = selectedAcquirer.name, // This will now resolve correctly
                 status = response.status,
                 amount = response.totalAmount,
                 currency = activeOrder.currency,
@@ -61,17 +58,18 @@ class ProcessPaymentUseCase @Inject constructor(
                 createdAt = startTime
             )
 
-            // 6. Log the results.
-            Log.d("ProcessPaymentUseCase", """
-                --- Payment Attempt Log ---
-                Acquirer Name: ${transaction.acquirerName}
-                Acquirer ID: ${transaction.acquirerId}
-                Status: ${transaction.status}
-                Total Amount: ${transaction.amount}
-                Timestamp: ${transaction.createdAt}
-                Latency: ${transaction.latencyMs}ms
-                Failure Reason: ${transaction.failureReason ?: "N/A"}
-            """.trimIndent())
+            // 5. Save the transaction record to Ditto.
+            transactionRepository.saveTransaction(transaction)
+            Log.d("ProcessPaymentUseCase", "Transaction record saved to Ditto: ${transaction.id}")
+            Log.d("ProcessPaymentUseCase", "Transaction status: ${response.status}")
+
+
+
+            // 6. If successful, update the order status to "COMPLETED".
+            if (response.status == "SUCCESS") {
+                val completedOrder = activeOrder.copy(status = Order.STATUS_COMPLETED)
+                orderRepository.updateOrder(completedOrder)
+            }
 
             Result.success(response)
         } catch (e: Exception) {

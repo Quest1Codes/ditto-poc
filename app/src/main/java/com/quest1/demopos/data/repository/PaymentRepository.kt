@@ -1,88 +1,64 @@
 package com.quest1.demopos.data.repository
 
 import com.quest1.demopos.data.model.payment.Gateway
-import com.quest1.demopos.data.model.payment.PaymentMethod
+import com.quest1.demopos.data.network.PaymentApiService
 import com.quest1.demopos.data.network.PaymentRequest
 import com.quest1.demopos.data.network.PaymentResponse
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.random.Random
 
 @Singleton
-class PaymentRepository @Inject constructor() {
+class PaymentRepository @Inject constructor(
+    // Inject the real API service created by Retrofit from our new PaymentModule
+    private val paymentApiService: PaymentApiService
+) {
 
-    // A list of potential failure reasons for a failed transaction.
-    private val failureReasons = listOf(
-        "Insufficient funds",
-        "Card declined by issuer",
-        "Expired card",
-        "Invalid CVC",
-        "Transaction blocked by fraud filter",
-        "Gateway timeout"
-    )
-
-    // --- Stub Data ---
-    // A list of famous international acquirers.
+    // This list now only provides the names and IDs of the acquirers.
     private val stubGateways = listOf(
-        Gateway(
-            id = "stripe",
-            name = "Stripe",
-            apiEndpoints = mapOf("pay" to "https://api.example.com/stripe/pay"),
-            supportedPaymentMethods = listOf(PaymentMethod.VISA, PaymentMethod.MASTERCARD, PaymentMethod.AMEX)
-        ),
-        Gateway(
-            id = "adyen",
-            name = "Adyen",
-            apiEndpoints = mapOf("pay" to "https://api.example.com/adyen/pay"),
-            supportedPaymentMethods = listOf(PaymentMethod.VISA, PaymentMethod.MASTERCARD)
-        ),
-        Gateway(
-            id = "paypal",
-            name = "PayPal",
-            apiEndpoints = mapOf("pay" to "https://api.example.com/paypal/pay"),
-            supportedPaymentMethods = listOf(PaymentMethod.PAYPAL_CREDIT, PaymentMethod.VISA)
-        )
+        Gateway(id = "stripe21", name = "Stripe", supportedPaymentMethod = "Credit Card", apiEndpoint = ""),
+        Gateway(id = "adyen34", name = "Adyen", supportedPaymentMethod = "Credit Card", apiEndpoint = ""),
+        Gateway(id = "paypal56", name = "PayPal", supportedPaymentMethod = "Credit Card", apiEndpoint = "")
     )
-
-    // --- Repository Functions ---
 
     fun getAvailableGateways(): Flow<List<Gateway>> = flow {
         emit(stubGateways)
     }
 
     /**
-     * Simulates processing a payment with a given acquirer.
-     * This function introduces a random delay and randomly determines success or failure.
+     * Processes a payment by making a real network call to the backend server.
      */
     suspend fun processPayment(acquirer: Gateway, request: PaymentRequest): PaymentResponse {
-        // Simulate network latency with a random delay.
-        val waitTime = Random.nextLong(500, 3000)
-        delay(waitTime)
+        return try {
+            // The simulation logic is gone. Now we make a real API call.
+            val response = paymentApiService.processPayment(acquirer.id, request)
 
-        val isSuccess = Random.nextBoolean() // Randomly decide if the payment succeeds.
-
-        return if (isSuccess) {
+            if (response.isSuccessful && response.body() != null) {
+                // If the server returns a 2xx status code, return the response body.
+                response.body()!!
+            } else {
+                // If the server returns an error (e.g., 400), create a failure response.
+                PaymentResponse(
+                    transactionId = "txn_failed",
+                    status = "FAILED",
+                    acquirerId = acquirer.id,
+                    acquirerName = acquirer.name,
+                    orderId = request.orderId,
+                    totalAmount = request.amount,
+                    failureReason = "Gateway Error: ${response.code()} - ${response.message()}"
+                )
+            }
+        } catch (e: Exception) {
+            // Handle network exceptions (e.g., server is offline).
             PaymentResponse(
-                transactionId = "txn_${UUID.randomUUID()}",
-                status = "SUCCESS",
-                acquirerId = acquirer.id,
-                acquirerName = acquirer.name,
-                orderId = request.orderId,
-                totalAmount = request.amount
-            )
-        } else {
-            PaymentResponse(
-                transactionId = "txn_${UUID.randomUUID()}",
+                transactionId = "txn_network_error",
                 status = "FAILED",
                 acquirerId = acquirer.id,
                 acquirerName = acquirer.name,
                 orderId = request.orderId,
                 totalAmount = request.amount,
-                failureReason = failureReasons.random() // Pick a random failure reason.
+                failureReason = "Network error: ${e.message}"
             )
         }
     }

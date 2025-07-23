@@ -19,6 +19,7 @@ import com.quest1.demopos.ui.components.PrimaryActionButton
 import com.quest1.demopos.ui.theme.Error
 import com.quest1.demopos.ui.theme.Success
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PaymentScreen(
@@ -26,8 +27,17 @@ fun PaymentScreen(
     onNavigateBack: () -> Unit,
     onNavigateHome: () -> Unit
 ) {
+
+    // This effect runs once and starts the payment process
     LaunchedEffect(Unit) {
         viewModel.startPaymentProcess()
+    }
+
+    // This effect listens for navigation events from the ViewModel
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvent.collect {
+            onNavigateHome()
+        }
     }
 
     val uiState by viewModel.uiState.collectAsState()
@@ -48,7 +58,9 @@ fun PaymentScreen(
                 title = "Processing Your Payment",
                 subtitle = "Please wait, this may take a moment...",
                 content = {
-                    val animatedProgress by animateFloatAsState(targetValue = uiState.progress, label = "progress")
+                    val animatedProgress by animateFloatAsState(targetValue = uiState.progress,
+                        label = "progress"
+                    )
                     CircularProgressIndicator(progress = { animatedProgress })
                 }
             )
@@ -58,7 +70,7 @@ fun PaymentScreen(
                 title = "Payment Successful!",
                 subtitle = "Your payment has been processed successfully.",
                 content = {
-                    PrimaryActionButton(text = "View Receipt", onClick = { viewModel.startRedirectHome() })
+                    PrimaryActionButton(text = "Go to Home", onClick = { viewModel.startRedirectHome() })
                 }
             )
             PaymentStatus.FAILED -> PaymentStatusComponent(
