@@ -14,6 +14,7 @@ import java.util.Date
 import java.text.SimpleDateFormat
 import java.util.Locale
 import javax.inject.Inject
+import java.util.UUID
 
 class ProcessPaymentUseCase @Inject constructor(
     private val orderRepository: OrderRepository,
@@ -21,20 +22,22 @@ class ProcessPaymentUseCase @Inject constructor(
     private val transactionRepository: TransactionRepository
 ) {
     suspend fun execute(): Result<PaymentResponse> {
+        // 1. Get the current active order. This also validates that an order exists.
+        val activeOrder = orderRepository.observeActiveOrder().first()
+            ?: return Result.failure(Exception("No active order found."))
+
+        // 2. Get available payment gateways.
+        val gateways = paymentRepository.getAvailableGateways().first()
+        if (gateways.isEmpty()) {
+            return Result.failure(Exception("No payment gateways available."))
+        }
+
+        // 3. Define the acquirer and start time BEFORE the try block to make them available to the catch block.
+        val selectedAcquirer = gateways.random()
+        val startTime = System.currentTimeMillis()
+
         return try {
-            // 1. Get the current active order.
-            val activeOrder = orderRepository.observeActiveOrder().first()
-                ?: return Result.failure(Exception("No active order found."))
-
-            // 2. Get available payment gateways.
-            val gateways = paymentRepository.getAvailableGateways().first()
-            if (gateways.isEmpty()) {
-                return Result.failure(Exception("No payment gateways available."))
-            }
-
-            // 3. Choose a random acquirer and process payment.
-            val selectedAcquirer = gateways.random()
-            val startTime = System.currentTimeMillis()
+            // This code now runs within the try block, but uses variables defined outside.
             val paymentRequest = PaymentRequest(
                 orderId = activeOrder.id,
                 amount = activeOrder.totalAmount,
@@ -44,12 +47,12 @@ class ProcessPaymentUseCase @Inject constructor(
             val endTime = System.currentTimeMillis()
             val latency = endTime - startTime
 
-            // 4. Create a transaction record from the response.
+            // 4. Create a transaction record from the successful response.
             val transaction = Transaction(
                 id = response.transactionId,
                 orderId = activeOrder.id,
-                acquirerId = selectedAcquirer.id, // This will now resolve correctly
-                acquirerName = selectedAcquirer.name, // This will now resolve correctly
+                acquirerId = selectedAcquirer.id,
+                acquirerName = selectedAcquirer.name,
                 status = response.status,
                 amount = response.totalAmount,
                 currency = activeOrder.currency,
@@ -58,12 +61,10 @@ class ProcessPaymentUseCase @Inject constructor(
                 createdAt = startTime
             )
 
-            // 5. Save the transaction record to Ditto.
+            // 5. Save the successful transaction record to Ditto.
             transactionRepository.saveTransaction(transaction)
             Log.d("ProcessPaymentUseCase", "Transaction record saved to Ditto: ${transaction.id}")
             Log.d("ProcessPaymentUseCase", "Transaction status: ${response.status}")
-
-
 
             // 6. If successful, update the order status to "COMPLETED".
             if (response.status == "SUCCESS") {
@@ -73,7 +74,24 @@ class ProcessPaymentUseCase @Inject constructor(
 
             Result.success(response)
         } catch (e: Exception) {
-            Log.e("ProcessPaymentUseCase", "Payment processing failed", e)
+            Log.e("ProcessPaymentUseCase", "Payment processing failed with an exception", e)
+
+            // Create and save a FAILED transaction record for the exception.
+            val failedTransaction = Transaction(
+                id = "txn_exc_${UUID.randomUUID()}",
+                orderId = activeOrder.id,
+                acquirerId = selectedAcquirer.id,
+                acquirerName = selectedAcquirer.name,
+                status = "FAILED",
+                amount = activeOrder.totalAmount,
+                currency = activeOrder.currency,
+                failureReason = "Exception: ${e.message}",
+                latencyMs = System.currentTimeMillis() - startTime,
+                createdAt = startTime
+            )
+            transactionRepository.saveTransaction(failedTransaction)
+            Log.w("ProcessPaymentUseCase", "Saved failed transaction record for exception: ${failedTransaction.id}")
+
             Result.failure(e)
         }
     }

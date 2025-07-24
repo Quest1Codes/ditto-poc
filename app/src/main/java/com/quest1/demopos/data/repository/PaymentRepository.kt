@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
+import android.util.Log
 
 @Singleton
 class PaymentRepository @Inject constructor(
@@ -50,6 +51,7 @@ class PaymentRepository @Inject constructor(
                 )
             }
         } catch (e: Exception) {
+            Log.e("PaymentRepository", "Network exception during payment processing for order: ${request.orderId}", e)
             // Handle network exceptions (e.g., server is offline).
             PaymentResponse(
                 transactionId = "txn_network_error",

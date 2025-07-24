@@ -1,5 +1,6 @@
 package com.quest1.demopos.di
 
+import com.quest1.demopos.BuildConfig
 import com.quest1.demopos.data.network.PaymentApiService
 import com.squareup.moshi.Moshi
 import dagger.Module
@@ -25,7 +26,7 @@ object PaymentModule {
     @Named("PaymentRetrofit") // Use a name to distinguish from the auth Retrofit instance
     fun providePaymentRetrofit(moshi: Moshi): Retrofit {
         // This URL points to your new payment server running on port 5002.
-        val baseUrl = "http://10.0.2.2:5002/"
+        val baseUrl = BuildConfig.PAYMENT_SERVICE_BASE_URL
         return Retrofit.Builder()
             .baseUrl(baseUrl)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
