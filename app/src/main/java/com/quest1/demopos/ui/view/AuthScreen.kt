@@ -121,7 +121,7 @@ fun LoginUI(
         ) {
             Text("Forgot Password?",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.DarkGray)
+                color = Color.Gray)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -142,7 +142,7 @@ fun LoginUI(
         TextButton(onClick = onNavigateToRegister) {
             Text("Don't have an account yet? Register here.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.DarkGray)
+                color = Color.Gray)
         }
 
 
@@ -293,7 +293,9 @@ fun RegisterUI(
 
         // Navigation to Login screen
         TextButton(onClick = onNavigateToLogin) {
-            Text("Already have an account? Sign In")
+            Text("Already have an account? Sign In",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray)
         }
 
         // Handles UI updates for different registration states

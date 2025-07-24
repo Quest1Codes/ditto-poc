@@ -2,89 +2,74 @@ package com.quest1.demopos.ui.view
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.quest1.demopos.data.model.orders.OrderItem
+import com.quest1.demopos.domain.usecase.order.GetActiveOrderUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 import javax.inject.Inject
+import kotlin.math.abs
 
 data class PaymentGatewayUiState(
-    // Data for the top summary card
-    val cardHolderName: String = "Jonathan Michael",
-    val last4CardDigits: String = "3456",
-    val company: String = "Quest1",
-    val orderNumber: String = "",
-    val productSummary: String = "Shopping Cart",
-    val vatAmount: String = "$29.99",
-    val totalAmountMajor: String = "21",
-    val totalAmountMinor: String = "00",
+    // Header
+    val totalAmount: Double = 374.59,
 
-    // State for the input fields
-    val cardNumber: String = "2412 •••• •••• ••••",
-    val cvv: String = "",
-    val expiryMonth: String = "",
-    val expiryYear: String = "",
-    val password: String = "",
-    val isCardNumberEditable: Boolean = false
+    // Card Info
+    val cardHolderName: String = "Noah Oliver",
+    val cardLastFour: String = "4671", // Updated to match new image
+    val cardBrand: String = "Mastercard",
+    val lastUsedDate: String = "Fri, Jun 15 2021", // Added for new UI
+    val isCardSelected: Boolean = true,
+    // Order Details - from the active order
+    val orderItems: List<OrderItem> = emptyList(),
+    val itemTotal: Double = 0.0,
+
+    // Order Details - hardcoded values to match the design
+    val servicePrice: Double = 364.59,
+    val bookingFee: Double = 1.99,
+    val waitlistingFee: Double = 2.99,
+    val discount: Double = 1430.00,
+    val taxes: Double = 179.24,
+    val currency: String = "USD",
+    val cardType: String = "Debit Card",
+    val issuedBy: String = "Bank of America",
+    val transactionType: String = "Online",
+    val processor: String = "stripe"
 )
 
 @HiltViewModel
 class PaymentGatewayViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle
+    private val getActiveOrderUseCase: GetActiveOrderUseCase
 ) : ViewModel() {
 
     private val _uiState = mutableStateOf(PaymentGatewayUiState())
     val uiState: State<PaymentGatewayUiState> = _uiState
 
     init {
-        // Retrieve total amount and order number passed from the cart screen
-        val totalAmount = savedStateHandle.get<String>("totalAmount")?.toDoubleOrNull() ?: 0.0
-        val orderNumber = savedStateHandle.get<String>("orderNumber") ?: "N/A"
+        viewModelScope.launch {
+            // Fetch the active order to get the itemized list
+            val activeOrder = getActiveOrderUseCase.execute().firstOrNull()
+            activeOrder?.let { order ->
+                // Calculate the total from the items in the order
+                val itemsSubtotal = order.items.sumOf { (it.cost.toDouble()) * it.quantity }
 
-        val formattedTotal = NumberFormat.getCurrencyInstance(Locale("en", "US"))
-            .format(totalAmount).removePrefix("$")
+                // For the demo, we'll use the hardcoded fees from the screenshot to calculate the final total
+                val total = _uiState.value.servicePrice + _uiState.value.bookingFee + _uiState.value.waitlistingFee
 
-        _uiState.value = _uiState.value.copy(
-            totalAmountMajor = formattedTotal.substringBefore('.'),
-            totalAmountMinor = formattedTotal.substringAfter('.', "00"),
-            orderNumber = orderNumber
-        )
-    }
-
-    fun onCardNumberChanged(newValue: String) {
-        if (newValue.length <= 16 && newValue.all { it.isDigit() }) {
-            _uiState.value = _uiState.value.copy(cardNumber = newValue)
+                _uiState.value = _uiState.value.copy(
+                    orderItems = order.items,
+                    itemTotal = itemsSubtotal,
+                    totalAmount = total
+                )
+            }
         }
     }
 
-    fun onCvvChanged(newValue: String) {
-        if (newValue.length <= 4 && newValue.all { it.isDigit() }) {
-            _uiState.value = _uiState.value.copy(cvv = newValue)
-        }
-    }
-
-    fun onExpiryMonthChanged(newValue: String) {
-        if (newValue.length <= 2 && newValue.all { it.isDigit() }) {
-            _uiState.value = _uiState.value.copy(expiryMonth = newValue)
-        }
-    }
-
-    fun onExpiryYearChanged(newValue: String) {
-        if (newValue.length <= 2 && newValue.all { it.isDigit() }) {
-            _uiState.value = _uiState.value.copy(expiryYear = newValue)
-        }
-    }
-
-    fun onPasswordChanged(newValue: String) {
-        _uiState.value = _uiState.value.copy(password = newValue)
-    }
-
-    fun onEditCardNumber(isEditable: Boolean) {
-        val currentCardNumber = if (isEditable) "" else "2412 •••• •••• ••••"
-        _uiState.value = _uiState.value.copy(
-            isCardNumberEditable = isEditable,
-            cardNumber = currentCardNumber
-        )
+    fun onCardSelectionChanged() {
+        _uiState.value = _uiState.value.copy(isCardSelected = !_uiState.value.isCardSelected)
     }
 }
