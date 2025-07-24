@@ -1,54 +1,65 @@
 package com.quest1.demopos.data.repository
 
 import com.quest1.demopos.data.model.payment.Gateway
-import com.quest1.demopos.data.model.payment.GatewayPerformanceMetrics
-import com.quest1.demopos.data.model.payment.PaymentMethod
+import com.quest1.demopos.data.network.PaymentApiService
+import com.quest1.demopos.data.network.PaymentRequest
+import com.quest1.demopos.data.network.PaymentResponse
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class PaymentRepository @Inject constructor() {
+class PaymentRepository @Inject constructor(
+    // Inject the real API service created by Retrofit from our new PaymentModule
+    private val paymentApiService: PaymentApiService
+) {
 
-    // --- Stub Data ---
+    // This list now only provides the names and IDs of the acquirers.
     private val stubGateways = listOf(
-        Gateway(
-            id = "gw_stripe",
-            name = "Stripe",
-            apiEndpoints = mapOf("charge" to "https://api.stripe.com/v1/charges"),
-            // Use the PaymentMethod enum instead of strings
-            supportedPaymentMethods = listOf(PaymentMethod.VISA, PaymentMethod.MASTERCARD, PaymentMethod.AMEX)
-        ),
-        Gateway(
-            id = "gw_paypal",
-            name = "PayPal",
-            apiEndpoints = mapOf("payment" to "https://api.paypal.com/v1/payments/payment"),
-            // Use the PaymentMethod enum instead of strings
-            supportedPaymentMethods = listOf(PaymentMethod.PAYPAL_CREDIT, PaymentMethod.VISA)
-        )
+        Gateway(id = "stripe21", name = "Stripe", supportedPaymentMethod = "Credit Card", apiEndpoint = ""),
+        Gateway(id = "adyen34", name = "Adyen", supportedPaymentMethod = "Credit Card", apiEndpoint = ""),
+        Gateway(id = "paypal56", name = "PayPal", supportedPaymentMethod = "Credit Card", apiEndpoint = "")
     )
-
-    private val stubMetrics = listOf(
-        GatewayPerformanceMetrics(
-            id = "met_01",
-            transactionId = "txn_01",
-            gatewayId = "gw_stripe",
-            terminalId = "term_A1",
-            timestamp = System.currentTimeMillis(),
-            metrics = mapOf("latencyMs" to 120),
-            wasSuccess = true,
-            failureCode = null
-        )
-    )
-
-    // --- Repository Functions ---
 
     fun getAvailableGateways(): Flow<List<Gateway>> = flow {
         emit(stubGateways)
     }
 
-    fun getPerformanceMetrics(gatewayId: String): Flow<List<GatewayPerformanceMetrics>> = flow {
-        emit(stubMetrics.filter { it.gatewayId == gatewayId })
+    /**
+     * Processes a payment by making a real network call to the backend server.
+     */
+    suspend fun processPayment(acquirer: Gateway, request: PaymentRequest): PaymentResponse {
+        return try {
+            // The simulation logic is gone. Now we make a real API call.
+            val response = paymentApiService.processPayment(acquirer.id, request)
+
+            if (response.isSuccessful && response.body() != null) {
+                // If the server returns a 2xx status code, return the response body.
+                response.body()!!
+            } else {
+                // If the server returns an error (e.g., 400), create a failure response.
+                PaymentResponse(
+                    transactionId = "txn_failed",
+                    status = "FAILED",
+                    acquirerId = acquirer.id,
+                    acquirerName = acquirer.name,
+                    orderId = request.orderId,
+                    totalAmount = request.amount,
+                    failureReason = "Gateway Error: ${response.code()} - ${response.message()}"
+                )
+            }
+        } catch (e: Exception) {
+            // Handle network exceptions (e.g., server is offline).
+            PaymentResponse(
+                transactionId = "txn_network_error",
+                status = "FAILED",
+                acquirerId = acquirer.id,
+                acquirerName = acquirer.name,
+                orderId = request.orderId,
+                totalAmount = request.amount,
+                failureReason = "Network error: ${e.message}"
+            )
+        }
     }
 }

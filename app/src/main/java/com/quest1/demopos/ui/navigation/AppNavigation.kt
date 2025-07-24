@@ -1,6 +1,5 @@
 package com.quest1.demopos.ui.navigation
 
-
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -19,10 +18,15 @@ object AppRoutes {
     const val PAYMENT = "payment"
 }
 
+/**
+ * The main navigation component for the application.
+ * Manages the navigation between different screens.
+ */
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-    // The ShopViewModel is shared between the Shop, Cart, and Payment screens
+
+    // The ShopViewModel is shared between the Shop and Cart screens
     val shopViewModel: ShopViewModel = hiltViewModel()
 
     NavHost(navController = navController, startDestination = AppRoutes.AUTH) {
@@ -76,6 +80,7 @@ fun AppNavigation() {
                 }
             )
         }
+
         composable(AppRoutes.PAYMENT) {
             val paymentViewModel: PaymentViewModel = hiltViewModel()
             PaymentScreen(
@@ -86,9 +91,11 @@ fun AppNavigation() {
                     navController.popBackStack()
                 },
                 onNavigateHome = {
-                    // Navigate back to the shop screen, clearing the back stack
                     navController.navigate(AppRoutes.SHOP) {
-                        popUpTo(AppRoutes.SHOP) { inclusive = true }
+                        popUpTo(AppRoutes.SHOP) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
                     }
                 }
             )

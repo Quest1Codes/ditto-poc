@@ -31,7 +31,14 @@ fun PaymentScreen(
 
     // Pass the cart data to the payment process when the screen launches
     LaunchedEffect(Unit) {
-        viewModel.startPaymentProcess(shopUiState.itemsInCart, shopUiState.cartTotal)
+        viewModel.startPaymentProcess()
+    }
+
+    // This effect listens for navigation events from the ViewModel
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvent.collect {
+            onNavigateHome()
+        }
     }
 
     val uiState by viewModel.uiState.collectAsState()
@@ -52,7 +59,9 @@ fun PaymentScreen(
                 title = "Processing Your Payment",
                 subtitle = "Please wait, this may take a moment...",
                 content = {
-                    val animatedProgress by animateFloatAsState(targetValue = uiState.progress, label = "progress")
+                    val animatedProgress by animateFloatAsState(targetValue = uiState.progress,
+                        label = "progress"
+                    )
                     CircularProgressIndicator(progress = { animatedProgress })
                 }
             )
@@ -77,7 +86,7 @@ fun PaymentScreen(
                     // Pass cart data again if the user retries
                     PrimaryActionButton(
                         text = "Please Try Again",
-                        onClick = { viewModel.startPaymentProcess(shopUiState.itemsInCart, shopUiState.cartTotal) }
+                        onClick = { viewModel.startPaymentProcess() }
                     )
                 }
             )
