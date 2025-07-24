@@ -5,6 +5,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
 import retrofit2.http.Path
+import com.quest1.demopos.data.defaultPaymentMethod
 
 /**
  * Request body for initiating a payment.
@@ -14,7 +15,7 @@ data class PaymentRequest(
     val orderId: String,
     val amount: Double,
     val currency: String,
-    val paymentMethod: String = "card" // Default to card
+    val paymentMethod: String =  defaultPaymentMethod// Default to card from DemoData
 )
 
 /**
