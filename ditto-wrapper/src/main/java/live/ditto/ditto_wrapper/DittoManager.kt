@@ -5,6 +5,7 @@ import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import live.ditto.Ditto
+import live.ditto.DittoSmallPeerInfoSyncScope
 import live.ditto.DittoAuthenticator
 import live.ditto.DittoError
 import live.ditto.DittoIdentity
@@ -12,6 +13,7 @@ import live.ditto.DittoLogLevel
 import live.ditto.DittoLogger
 import live.ditto.android.DefaultAndroidDittoDependencies
 import live.ditto.DittoAuthenticationCallback
+
 class DittoManager(
     val context: Context,
     // We are going back to the simple online playground setup
@@ -63,9 +65,8 @@ class DittoManager(
             ditto?.smallPeerInfo?.isEnabled = true
 
             ditto?.transportConfig?.connect?.websocketUrls?.add(dittoWsUrl)
-
+            ditto?.smallPeerInfo?.syncScope = DittoSmallPeerInfoSyncScope.BigPeerOnly
             ditto?.startSync()
-
             Log.d(TAG, "Ditto ONLINE WITH AUTHENTICATION initialization complete and sync started.")
 
         } catch (e: DittoError) {

@@ -22,7 +22,7 @@ object AppRoutes {
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-    // The ShopViewModel is shared between the Shop and Cart screens
+    // The ShopViewModel is shared between the Shop, Cart, and Payment screens
     val shopViewModel: ShopViewModel = hiltViewModel()
 
     NavHost(navController = navController, startDestination = AppRoutes.AUTH) {
@@ -79,6 +79,7 @@ fun AppNavigation() {
         composable(AppRoutes.PAYMENT) {
             val paymentViewModel: PaymentViewModel = hiltViewModel()
             PaymentScreen(
+                shopViewModel = shopViewModel, // Pass the ShopViewModel instance
                 viewModel = paymentViewModel,
                 onNavigateBack = {
                     paymentViewModel.reset()

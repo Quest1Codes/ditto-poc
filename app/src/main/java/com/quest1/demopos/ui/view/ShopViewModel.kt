@@ -11,6 +11,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.quest1.demopos.data.model.inventory.Item
+import com.quest1.demopos.data.repository.InventoryRepository
 import com.quest1.demopos.domain.usecase.GetShopItemsUseCase
 import com.quest1.demopos.domain.usecase.InsertItemUseCase
 import com.quest1.demopos.domain.usecase.order.GetActiveOrderUseCase
@@ -40,6 +41,7 @@ data class ShopUiState(
 
 @HiltViewModel
 class ShopViewModel @Inject constructor(
+    private val inventoryRepository: InventoryRepository,
     private val getShopItemsUseCase: GetShopItemsUseCase,
     private val insertItemUseCase: InsertItemUseCase,
     private val getActiveOrderUseCase: GetActiveOrderUseCase,

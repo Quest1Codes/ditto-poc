@@ -22,12 +22,16 @@ import com.quest1.demopos.ui.theme.Success
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PaymentScreen(
+    shopViewModel: ShopViewModel, // Accept the ShopViewModel
     viewModel: PaymentViewModel,
     onNavigateBack: () -> Unit,
     onNavigateHome: () -> Unit
 ) {
+    val shopUiState by shopViewModel.uiState.collectAsState()
+
+    // Pass the cart data to the payment process when the screen launches
     LaunchedEffect(Unit) {
-        viewModel.startPaymentProcess()
+        viewModel.startPaymentProcess(shopUiState.itemsInCart, shopUiState.cartTotal)
     }
 
     val uiState by viewModel.uiState.collectAsState()
@@ -58,7 +62,10 @@ fun PaymentScreen(
                 title = "Payment Successful!",
                 subtitle = "Your payment has been processed successfully.",
                 content = {
-                    PrimaryActionButton(text = "View Receipt", onClick = { viewModel.startRedirectHome() })
+                    PrimaryActionButton(text = "View Receipt", onClick = {
+                        viewModel.startRedirectHome()
+                        onNavigateHome() // Trigger navigation
+                    })
                 }
             )
             PaymentStatus.FAILED -> PaymentStatusComponent(
@@ -67,7 +74,11 @@ fun PaymentScreen(
                 title = "Payment Not Successful",
                 subtitle = "There was an issue processing your payment.",
                 content = {
-                    PrimaryActionButton(text = "Please Try Again", onClick = { viewModel.startPaymentProcess() })
+                    // Pass cart data again if the user retries
+                    PrimaryActionButton(
+                        text = "Please Try Again",
+                        onClick = { viewModel.startPaymentProcess(shopUiState.itemsInCart, shopUiState.cartTotal) }
+                    )
                 }
             )
             PaymentStatus.REDIRECTING -> PaymentStatusComponent(
