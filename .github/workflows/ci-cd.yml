@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - gateway_ui
       # - auth
 
 concurrency:
