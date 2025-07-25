@@ -33,7 +33,7 @@ class ProcessPaymentUseCase @Inject constructor(
             return Result.failure(Exception("No payment gateways available."))
         }
 
-        // 3. Choose a random acquirer and process payment.
+        // 3. Define the acquirer and start time BEFORE the try block to make them available to the catch block.
         val selectedAcquirer = gateways.random()
         val startTime = System.currentTimeMillis()
         return try {
