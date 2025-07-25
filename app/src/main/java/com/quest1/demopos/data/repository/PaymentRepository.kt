@@ -11,19 +11,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.quest1.demopos.data.stubGateways // Import the centralized stub data
 
 @Singleton
 class PaymentRepository @Inject constructor(
     // Inject the real API service created by Retrofit from our new PaymentModule
     private val paymentApiService: PaymentApiService
 ) {
-
-    // This list now only provides the names and IDs of the acquirers.
-    private val stubGateways = listOf(
-        Gateway(id = "stripe21", name = "Stripe", supportedPaymentMethod = "Credit Card", apiEndpoint = ""),
-        Gateway(id = "adyen34", name = "Adyen", supportedPaymentMethod = "Credit Card", apiEndpoint = ""),
-        Gateway(id = "paypal56", name = "PayPal", supportedPaymentMethod = "Credit Card", apiEndpoint = "")
-    )
 
     fun getAvailableGateways(): Flow<List<Gateway>> = flow {
         emit(stubGateways)

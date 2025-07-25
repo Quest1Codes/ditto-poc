@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
+import com.quest1.demopos.data.sampleItems // Import sample data
 
 // Wrapper class to hold an item and its quantity in the cart
 data class ShopItemState(
@@ -114,11 +115,6 @@ class ShopViewModel @Inject constructor(
     private fun addSampleItemsForTesting() {
         viewModelScope.launch {
             Log.d("ShopViewModel", "Database is empty. Adding sample items for testing...")
-            val sampleItems = listOf(
-                Item(id = UUID.randomUUID().toString(), itemId = "item_burger", name = "Live Classic Burger", price = 15.00, description = "A delicious all-beef burger.", category = "Entrees", sku = "SKU1001"),
-                Item(id = UUID.randomUUID().toString(), itemId = "item_fries", name = "Live Large Fries", price = 5.00, description = "Crispy golden fries.", category = "Sides", sku = "SKU1002"),
-                Item(id = UUID.randomUUID().toString(), itemId = "item_coffee", name = "Live Latte", price = 6.00, description = "Freshly brewed espresso with steamed milk.", category = "Beverages", sku = "SKU1003")
-            )
             sampleItems.forEach { insertItemUseCase(it) }
         }
     }
