@@ -96,7 +96,6 @@ fun AppNavigation() {
                     navController.popBackStack()
                 },
                 onNavigateHome = {
-                    // Navigate back to the shop screen, clearing the back stack
                     navController.navigate(AppRoutes.SHOP) {
                         popUpTo(AppRoutes.SHOP) {
                             inclusive = false

@@ -43,7 +43,7 @@ def process_payment(acquirer_id):
             "acquirerName": acquirer_id.capitalize(),
             "orderId": payment_request.get("orderId"),
             "totalAmount": payment_request.get("amount"),
-            "failureReason": None,
+            "failureReason": None
         }
         print(f"Payment successful for order {payment_request.get('orderId')}.")
         return jsonify(response_data), 200
