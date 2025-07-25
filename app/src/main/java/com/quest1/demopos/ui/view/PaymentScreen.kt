@@ -1,5 +1,6 @@
 package com.quest1.demopos.ui.view
 
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -12,9 +13,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.quest1.demopos.R
 import com.quest1.demopos.ui.components.PrimaryActionButton
 import com.quest1.demopos.ui.theme.Error
 import com.quest1.demopos.ui.theme.Success
@@ -50,12 +52,12 @@ fun PaymentScreen(
     ) {
         when (uiState.status) {
             PaymentStatus.INITIATING -> PaymentStatusComponent(
-                icon = Icons.Outlined.PlayArrow,
+                iconRes = R.drawable.credit_card_24px, // Use credit_card icon
                 title = "Initiating Payment...",
                 subtitle = "You are being redirected to our secure payment partner. Please do not click back or exit."
             )
             PaymentStatus.PROCESSING -> PaymentStatusComponent(
-                icon = null,
+                iconRes = null, // No icon for processing
                 title = "Processing Your Payment",
                 subtitle = "Please wait, this may take a moment...",
                 content = {
@@ -66,7 +68,7 @@ fun PaymentScreen(
                 }
             )
             PaymentStatus.SUCCESSFUL -> PaymentStatusComponent(
-                icon = Icons.Outlined.CheckCircle,
+                iconRes = R.drawable.credit_score_24px, // Use credit_score icon
                 iconTint = Success,
                 title = "Payment Successful!",
                 subtitle = "Your payment has been processed successfully.",
@@ -78,12 +80,11 @@ fun PaymentScreen(
                 }
             )
             PaymentStatus.FAILED -> PaymentStatusComponent(
-                icon = Icons.Outlined.Clear,
+                iconRes = R.drawable.credit_card_off_24px, // Use credit_card_off icon
                 iconTint = Error,
                 title = "Payment Not Successful",
                 subtitle = "There was an issue processing your payment.",
                 content = {
-                    // Pass cart data again if the user retries
                     PrimaryActionButton(
                         text = "Please Try Again",
                         onClick = { viewModel.startPaymentProcess() }
@@ -91,7 +92,7 @@ fun PaymentScreen(
                 }
             )
             PaymentStatus.REDIRECTING -> PaymentStatusComponent(
-                icon = Icons.Outlined.Home,
+                iconRes = R.drawable.home_24px, // Assuming you have a home icon in drawables
                 title = "Redirecting...",
                 subtitle = "You will be returned to the home screen shortly."
             )
@@ -101,7 +102,7 @@ fun PaymentScreen(
 
 @Composable
 fun PaymentStatusComponent(
-    icon: ImageVector?,
+    @DrawableRes iconRes: Int?, // Changed to accept a Drawable Resource ID
     title: String,
     subtitle: String,
     iconTint: Color = MaterialTheme.colorScheme.onBackground,
@@ -114,9 +115,9 @@ fun PaymentStatusComponent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        if (icon != null) {
+        if (iconRes != null) { // Check if the resource ID is provided
             Icon(
-                imageVector = icon,
+                painter = painterResource(id = iconRes), // Use the passed-in icon resource
                 contentDescription = null,
                 modifier = Modifier.size(48.dp),
                 tint = iconTint

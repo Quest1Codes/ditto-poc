@@ -65,6 +65,7 @@ class DittoManager(
             ditto?.smallPeerInfo?.isEnabled = true
 
             ditto?.transportConfig?.connect?.websocketUrls?.add(dittoWsUrl)
+            ditto?.disableSyncWithV3()
             ditto?.smallPeerInfo?.syncScope = DittoSmallPeerInfoSyncScope.BigPeerOnly
             ditto?.startSync()
             Log.d(TAG, "Ditto ONLINE WITH AUTHENTICATION initialization complete and sync started.")

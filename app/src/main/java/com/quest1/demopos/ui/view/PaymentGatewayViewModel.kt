@@ -16,28 +16,20 @@ import kotlin.math.abs
 
 data class PaymentGatewayUiState(
     // Header
-    val totalAmount: Double = 374.59,
+    val totalAmount: Double = 0.0,
 
     // Card Info
     val cardHolderName: String = "Noah Oliver",
-    val cardLastFour: String = "4671", // Updated to match new image
+    val cardLastFour: String = "4671",
     val cardBrand: String = "Mastercard",
-    val lastUsedDate: String = "Fri, Jun 15 2021", // Added for new UI
+    val lastUsedDate: String = "Fri, Jun 15 2021",
     val isCardSelected: Boolean = true,
+
     // Order Details - from the active order
     val orderItems: List<OrderItem> = emptyList(),
     val itemTotal: Double = 0.0,
-
-    // Order Details - hardcoded values to match the design
-    val servicePrice: Double = 364.59,
-    val bookingFee: Double = 1.99,
-    val waitlistingFee: Double = 2.99,
-    val discount: Double = 1430.00,
-    val taxes: Double = 179.24,
-    val currency: String = "USD",
-    val cardType: String = "Debit Card",
-    val issuedBy: String = "Bank of America",
-    val transactionType: String = "Online",
+    val taxes: Double = 0.0, // Added to store calculated tax
+    val tax_percentage: Double = 0.075, // 7.5% Tax
     val processor: String = "stripe"
 )
 
@@ -54,15 +46,15 @@ class PaymentGatewayViewModel @Inject constructor(
             // Fetch the active order to get the itemized list
             val activeOrder = getActiveOrderUseCase.execute().firstOrNull()
             activeOrder?.let { order ->
-                // Calculate the total from the items in the order
+                // Calculate the subtotal from the items in the order
                 val itemsSubtotal = order.items.sumOf { (it.cost.toDouble()) * it.quantity }
-
-                // For the demo, we'll use the hardcoded fees from the screenshot to calculate the final total
-                val total = _uiState.value.servicePrice + _uiState.value.bookingFee + _uiState.value.waitlistingFee
+                val taxes = itemsSubtotal * uiState.value.tax_percentage
+                val total = itemsSubtotal + taxes
 
                 _uiState.value = _uiState.value.copy(
                     orderItems = order.items,
                     itemTotal = itemsSubtotal,
+                    taxes = taxes,
                     totalAmount = total
                 )
             }

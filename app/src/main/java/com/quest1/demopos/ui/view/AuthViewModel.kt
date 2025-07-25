@@ -13,6 +13,9 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.collect // <-- ADDED IMPORT
 import kotlinx.coroutines.flow.combine
 import android.util.Log
+import com.quest1.demopos.data.repository.SessionManager
+import com.quest1.demopos.domain.usecase.UpsertTerminalUseCase
+
 sealed class AuthState {
     object Idle : AuthState()
     object Loading : AuthState()
@@ -23,7 +26,9 @@ sealed class AuthState {
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val dittoManager: DittoManager
+    private val dittoManager: DittoManager,
+    private val upsertTerminalUseCase: UpsertTerminalUseCase,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
@@ -52,8 +57,12 @@ class AuthViewModel @Inject constructor(
 
             result.onSuccess { loginResult ->
                 // Store the token. The observer in init {} will handle giving it to Ditto.
+                sessionManager.userLoggedIn(username)
                 _loginResultToken.value = loginResult.accessToken
                 _authState.value = AuthState.Success(loginResult.role)
+                viewModelScope.launch {
+                    upsertTerminalUseCase.execute(username) // Using username as the terminal ID
+                }
             }.onFailure { error ->
                 _authState.value = AuthState.Error(error.message ?: "An unknown error occurred")
             }

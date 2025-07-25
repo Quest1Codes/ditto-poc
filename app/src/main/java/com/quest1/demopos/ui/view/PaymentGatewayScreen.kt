@@ -56,36 +56,26 @@ fun PaymentGatewayScreen(
 
     Scaffold(
         topBar = {
-            // New custom TopAppBar with rounded design
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    // 1. Added statusBarsPadding() to prevent overlap with system icons
                     .statusBarsPadding()
-                    .padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                    .padding(top = 8.dp, start = 12.dp, end = 16.dp),
             ) {
+                // Modified this Row to center its content
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(64.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFFFDF8FF)),
-                    verticalAlignment = Alignment.CenterVertically
+                        .clip(CircleShape),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center // This centers the logo
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .padding(start = 8.dp)
-                            .height(48.dp)
-                            .clip(CircleShape)
-                            .padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.stripe_logo),
-                            contentDescription = "Stripe Logo",
-                            modifier = Modifier.height(30.dp)
-                        )
-                    }
+                    Image(
+                        painter = painterResource(id = R.drawable.stripe_logo),
+                        contentDescription = "Stripe Logo",
+                        modifier = Modifier.height(48.dp)
+                    )
                 }
             }
         },
@@ -107,9 +97,9 @@ fun PaymentGatewayScreen(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(64.dp))
             TotalOrderHeader(totalAmount = uiState.totalAmount)
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(96.dp))
             CreditCardLayout(
                 cardHolderName = uiState.cardHolderName
             )
@@ -294,10 +284,27 @@ private fun ExpandableOrderItems(uiState: PaymentGatewayUiState) {
 
 @Composable
 private fun OrderTotalSummary(uiState: PaymentGatewayUiState) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         OrderDetailRow(label = "Item Total", value = formatCurrency(uiState.itemTotal))
-        OrderDetailRow(label = "Discount Applied", value = formatCurrency(uiState.discount, isDiscount = true))
-        OrderDetailRow(label = "Taxes", value = formatCurrency(uiState.taxes), isLast = true)
+        OrderDetailRow(label = "Taxes", value = formatCurrency(uiState.taxes))
+        Divider(modifier = Modifier.padding(vertical = 4.dp))
+
+        // Final Total Row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Total Order",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = formatCurrency(uiState.totalAmount),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
 
@@ -309,7 +316,7 @@ private fun OrderDetailRow(label: String, value: String, isLast: Boolean = false
             .padding(bottom = if (isLast) 0.dp else 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(text = label, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+        Text(text = label, style = MaterialTheme.typography.bodyMedium, color = Color.DarkGray)
         Text(text = value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
     }
 }
