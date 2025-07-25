@@ -31,9 +31,11 @@ class UpdateOrderItemQuantityUseCase @Inject constructor(
     private val inventoryRepository: InventoryRepository // Needed to get item details
 ) {
     suspend fun execute(itemId: String, change: Int) {
-        // 1. Get the current active order, or create one if it doesn't exist.
+        // 1. Get the current active order, or determine if a new one is needed.
         var activeOrder = orderRepository.observeActiveOrder().firstOrNull()
-        if (activeOrder == null) {
+        val isNewOrder = activeOrder == null
+
+        if (isNewOrder) {
             val newOrderId = UUID.randomUUID().toString()
             activeOrder = Order(
                 id = newOrderId,
@@ -54,7 +56,7 @@ class UpdateOrderItemQuantityUseCase @Inject constructor(
             ?: return // Cannot proceed if the item doesn't exist in inventory
 
         // 3. Update the items list within the order.
-        val existingOrderItem = activeOrder.items.find { it.itemId == itemId }
+        val existingOrderItem = activeOrder!!.items.find { it.itemId == itemId }
         val currentQuantity = existingOrderItem?.quantity ?: 0
         val newQuantity = (currentQuantity + change).coerceAtLeast(0)
 
@@ -82,8 +84,12 @@ class UpdateOrderItemQuantityUseCase @Inject constructor(
         // 4. Recalculate the total amount.
         val newTotal = updatedItems.sumOf { (it.cost.toDouble()) * it.quantity }
 
-        // 5. Upsert the updated order back into the database.
+        // 5. Save or Update the order back into the database based on whether it was new.
         val finalOrder = activeOrder.copy(items = updatedItems, totalAmount = newTotal)
-        orderRepository.upsertOrder(finalOrder)
+        if (isNewOrder) {
+            orderRepository.saveOrder(finalOrder)
+        } else {
+            orderRepository.updateOrder(finalOrder)
+        }
     }
 }

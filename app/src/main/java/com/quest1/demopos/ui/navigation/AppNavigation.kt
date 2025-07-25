@@ -73,8 +73,14 @@ fun AppNavigation() {
                     navController.popBackStack()
                 },
                 onNavigateHome = {
+                    // CORRECTED NAVIGATION LOGIC:
+                    // This correctly navigates to the Shop screen and clears the
+                    // Cart and Payment screens from the back stack.
                     navController.navigate(AppRoutes.SHOP) {
-                        popUpTo(AppRoutes.SHOP) { inclusive = true }
+                        popUpTo(AppRoutes.SHOP) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
                     }
                 }
             )
