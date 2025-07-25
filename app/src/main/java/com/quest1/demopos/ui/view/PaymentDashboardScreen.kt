@@ -15,10 +15,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.quest1.demopos.data.model.payment.PaymentCard
+import com.quest1.demopos.data.model.orders.Transaction
 import com.quest1.demopos.ui.theme.Success
 import com.quest1.demopos.ui.theme.Error
 import com.quest1.demopos.ui.theme.Warning
+import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,10 +68,9 @@ fun PaymentDashboardScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(uiState.paymentCards) { paymentCard ->
+                items(uiState.transactions) { transaction ->
                     PaymentCardItem(
-                        paymentCard = paymentCard,
-                        onClick = { /* Handle card click */ }
+                        transaction = transaction
                     )
                 }
             }
@@ -77,11 +80,18 @@ fun PaymentDashboardScreen(
 
 @Composable
 fun PaymentCardItem(
-    paymentCard: PaymentCard,
-    onClick: () -> Unit
+    transaction: Transaction
 ) {
+
+    val date = Date(transaction.createdAt)
+    val dateFormat = SimpleDateFormat("MMM d, yyyy • h:mm a", Locale.getDefault())
+    val formattedDate = dateFormat.format(date)
+
+    val format = NumberFormat.getCurrencyInstance(Locale.US) // or use currency code
+    format.currency = java.util.Currency.getInstance(transaction.currency)
+    val amount = format.format(transaction.amount)
+
     Card(
-        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .height(160.dp),
@@ -105,23 +115,23 @@ fun PaymentCardItem(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = paymentCard.acquirerName,
+                        text = transaction.acquirerName,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = paymentCard.transactionId,
+                        text = transaction.id,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                 }
 
-                PaymentStatusBadge(status = paymentCard.status)
+                PaymentStatusBadge(status = transaction.status)
             }
 
             // Amount
             Text(
-                text = paymentCard.amount,
+                text = amount,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -140,27 +150,9 @@ fun PaymentCardItem(
                         tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                     Text(
-                        text = "${paymentCard.date} • ${paymentCard.time}",
+                        text = formattedDate,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.LocationOn,
-                        contentDescription = "Location",
-                        modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                    Text(
-                        text = paymentCard.location,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        maxLines = 1
                     )
                 }
             }

@@ -7,14 +7,6 @@ data class Acquirer(
     val latency: String,
     val successRate: String
 )
-
-data class Transaction(
-    val id: String,
-    val amount: String,
-    val time: String,
-    val status: String // "success", "failed"
-)
-
 data class StorePerformance(
     val totalTransactions: Int,
     val transactionGrowth: String,

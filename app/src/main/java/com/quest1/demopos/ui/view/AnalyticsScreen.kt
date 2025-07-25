@@ -1,6 +1,7 @@
 package com.quest1.demopos.ui.view
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Store
 import androidx.compose.material3.*
+import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -22,10 +24,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.quest1.demopos.data.model.analytics.Acquirer
 import com.quest1.demopos.data.model.analytics.StorePerformance
-import com.quest1.demopos.data.model.analytics.Transaction
+import com.quest1.demopos.data.model.orders.Transaction
 import com.quest1.demopos.ui.theme.Success
 import com.quest1.demopos.ui.theme.Warning
 import com.quest1.demopos.ui.theme.Error
+import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -131,7 +137,11 @@ fun StorePerformanceSection(
         ) {
             Card(
                 modifier = Modifier.weight(1f),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                ),
+                border = CardDefaults.outlinedCardBorder()
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
@@ -156,7 +166,11 @@ fun StorePerformanceSection(
 
             Card(
                 modifier = Modifier.weight(1f),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                ),
+                border = CardDefaults.outlinedCardBorder()
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
@@ -182,7 +196,11 @@ fun StorePerformanceSection(
 
         // Recent Transactions Card
         Card(
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.background
+            ),
+            border = CardDefaults.outlinedCardBorder()
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
@@ -203,6 +221,14 @@ fun StorePerformanceSection(
 
 @Composable
 fun TransactionItem(transaction: Transaction) {
+    val date = Date(transaction.createdAt)
+    val dateFormat = SimpleDateFormat("MMM d, yyyy • h:mm a", Locale.getDefault())
+    val formattedDate = dateFormat.format(date)
+
+    val format = NumberFormat.getCurrencyInstance(Locale.US) // or use currency code
+    format.currency = java.util.Currency.getInstance(transaction.currency)
+    val amount = format.format(transaction.amount)
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -224,21 +250,21 @@ fun TransactionItem(transaction: Transaction) {
                     fontWeight = FontWeight.Medium
                 )
                 Text(
-                    transaction.time,
+                    formattedDate,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    transaction.amount,
+                    amount,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
                     transaction.status,
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (transaction.status == "success") Success else Error
+                    color = if (transaction.status == "SUCCESS") Success else Error
                 )
             }
         }
@@ -263,7 +289,11 @@ fun LiveAcquirerRankingsSection(acquirers: List<Acquirer>) {
 fun AcquirerRankingCard(acquirer: Acquirer) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.background
+        ),
+        border = CardDefaults.outlinedCardBorder()
     ) {
         Row(
             modifier = Modifier

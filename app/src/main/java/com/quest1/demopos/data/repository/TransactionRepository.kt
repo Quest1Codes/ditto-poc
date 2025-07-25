@@ -1,6 +1,10 @@
 package com.quest1.demopos.data.repository
 
+import android.util.Log
+import com.quest1.demopos.data.model.orders.Order
 import com.quest1.demopos.data.model.orders.Transaction
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -9,6 +13,7 @@ class TransactionRepository @Inject constructor(
     private val dittoRepository: DittoRepository
 ) {
     companion object {
+        const val TAG = "TransactionRepository"
         // The query is now co-located with the repository that uses it.
         const val INSERT_TRANSACTION_QUERY = """
             INSERT INTO ${Transaction.COLLECTION_NAME}
@@ -41,5 +46,38 @@ class TransactionRepository @Inject constructor(
             "createdAt" to transaction.createdAt
         )
         dittoRepository.upsert(Transaction.COLLECTION_NAME, transactionMap)
+    }
+
+    /**
+     * Observes all the transactions.
+     * It returns a Flow that emits the transactions.
+     */
+    fun observeTransactions(): Flow<List<Transaction>> {
+        val query = "SELECT * FROM ${Transaction.COLLECTION_NAME} ORDER BY createdAt DESC"
+        val arguments = mapOf("status" to Order.STATUS_PENDING)
+
+        return dittoRepository.observeCollection(query, arguments).map { documents ->
+            documents.mapNotNull{ docMap ->
+                try {
+                    Transaction(
+                        id = docMap["_id"].toString(),
+                        orderId = docMap["orderId"] as String,
+                        acquirerId = docMap["acquirerId"] as String,
+                        acquirerName = docMap["acquirerName"] as String,
+                        status = docMap["status"] as String,
+                        amount = docMap["amount"].toString().toDouble(),
+                        currency = docMap["currency"] as String,
+                        failureReason = (docMap["failureReason"] ?: "") as String,
+                        latencyMs = docMap["latencyMs"].toString().toLong(),
+                        createdAt = docMap["createdAt"].toString().toLong(),
+
+                    )
+                } catch (e: Exception) {
+                    // 3. Replace println with Log.e for better error logging
+                    Log.e(TAG, "Error mapping order document: $docMap", e)
+                    null
+                }
+            }
+        }
     }
 }

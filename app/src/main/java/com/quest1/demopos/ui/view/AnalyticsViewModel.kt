@@ -4,8 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.quest1.demopos.data.model.analytics.Acquirer
 import com.quest1.demopos.data.model.analytics.StorePerformance
-import com.quest1.demopos.data.model.analytics.Transaction
+import com.quest1.demopos.data.model.orders.Transaction
 import com.quest1.demopos.data.repository.AnalyticsRepository
+import com.quest1.demopos.domain.usecase.TransactionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +14,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-
 import javax.inject.Inject
 
 data class AnalyticsUiState(
@@ -25,7 +25,8 @@ data class AnalyticsUiState(
 
 @HiltViewModel
 class AnalyticsViewModel @Inject constructor(
-    private val analyticsRepository: AnalyticsRepository
+    private val analyticsRepository: AnalyticsRepository,
+    private val transactionUseCase: TransactionUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AnalyticsUiState())
@@ -37,11 +38,11 @@ class AnalyticsViewModel @Inject constructor(
 
     private fun loadAnalyticsData() {
         combine(
-            analyticsRepository.getStorePerformance(),
-            analyticsRepository.getRecentTransactions(),
+            transactionUseCase.getStorePerformance(),
+            transactionUseCase.getRecentTransactions(),
             analyticsRepository.getAcquirerRankings()
         ) { performance, transactions, acquirers ->
-            println(performance)
+            println(transactions)
             AnalyticsUiState(
                 storePerformance = performance,
                 recentTransactions = transactions,
