@@ -40,6 +40,8 @@ android {
         buildConfigField("String", "DITTO_WS_URL", "\"${localProperties.getProperty("DITTO_WS_URL")}\"")
         buildConfigField("String", "AUTH_SERVICE_BASE_URL", "\"${localProperties.getProperty("AUTH_SERVICE_BASE_URL")}\"")
         buildConfigField("String", "PAYMENT_SERVICE_BASE_URL", "\"${localProperties.getProperty("PAYMENT_SERVICE_BASE_URL")}\"")
+        buildConfigField("long", "PayInitiatingDelay", "1500L")
+        buildConfigField("long", "PayRedirectingDelay", "2000L")
     }
 
     buildTypes {

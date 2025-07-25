@@ -34,7 +34,8 @@ data class ShopUiState(
     val items: List<ShopItemState> = emptyList(),
     val cartItemCount: Int = 0,
     val cartTotal: Double = 0.0,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val errorMessage: String? = null
 ) {
     val itemsInCart: List<ShopItemState>
         get() = items.filter { it.quantityInCart > 0 }
@@ -104,7 +105,12 @@ class ShopViewModel @Inject constructor(
                     cartItemCount = count
                 )
             }
-                .catch { e -> Log.e("ShopViewModel", "Error combining flows", e) }
+                .catch { e -> Log.e("ShopViewModel", "Error combining flows", e)
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        errorMessage = "An error occurred while loading your shop data."
+                    )
+                }
                 .collect { newState ->
                     _uiState.value = newState
                 }

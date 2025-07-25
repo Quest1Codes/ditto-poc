@@ -1,5 +1,6 @@
 package com.quest1.demopos.data.repository
 
+import android.util.Log
 import com.quest1.demopos.data.model.payment.Gateway
 import com.quest1.demopos.data.network.PaymentApiService
 import com.quest1.demopos.data.network.PaymentRequest
@@ -44,6 +45,7 @@ class PaymentRepository @Inject constructor(
                 )
             }
         } catch (e: Exception) {
+            Log.e("PaymentRepository", "Network exception during payment processing for order: ${request.orderId}", e)
             // Handle network exceptions (e.g., server is offline).
             PaymentResponse(
                 transactionId = "txn_network_error",

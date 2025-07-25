@@ -2,6 +2,7 @@ package com.quest1.demopos.ui.view
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.quest1.demopos.BuildConfig
 import com.quest1.demopos.domain.usecase.order.ProcessPaymentUseCase
 import com.quest1.demopos.data.model.orders.Order
 import com.quest1.demopos.data.model.orders.OrderItem
@@ -47,11 +48,14 @@ class PaymentViewModel @Inject constructor(
     private val _navigationEvent = Channel<Unit>()
     val navigationEvent = _navigationEvent.receiveAsFlow()
 
+    private val payInitDelay = BuildConfig.PayInitiatingDelay
+    private val payRedirectDelay = BuildConfig.PayRedirectingDelay
+
 
     fun startPaymentProcess() {
         viewModelScope.launch {
             _uiState.update { it.copy(status = PaymentStatus.INITIATING) }
-            delay(1500)
+            delay(payInitDelay)
 
             _uiState.update { it.copy(status = PaymentStatus.PROCESSING) }
             val result = processPaymentUseCase.execute()
@@ -81,7 +85,7 @@ class PaymentViewModel @Inject constructor(
     fun startRedirectHome() {
         viewModelScope.launch {
             _uiState.update { it.copy(status = PaymentStatus.REDIRECTING) }
-            delay(2000) // Keep a short delay to show the redirecting message
+            delay(payRedirectDelay) // Keep a short delay to show the redirecting message
             _navigationEvent.send(Unit) // Signal navigation
         }
     }
