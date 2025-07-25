@@ -16,6 +16,11 @@ object AppRoutes {
     const val CART = "cart"
     const val PAYMENT_GATEWAY = "payment_gateway" // New Route
     const val PAYMENT = "payment"
+
+    // NEW
+    const val ANALYTICS = "analytics"
+    const val PAYMENT_DASHBOARD = "payment_dashboard"
+    const val PRESENCE_VIEWER = "presence_viewer"
 }
 
 /**
@@ -41,11 +46,11 @@ fun AppNavigation() {
         }
 
         composable(AppRoutes.SHOP) {
+            val shopViewModel = hiltViewModel<ShopViewModel>()
             ShopScreen(
                 viewModel = shopViewModel,
-                onNavigateToCart = {
-                    navController.navigate(AppRoutes.CART)
-                }
+                onNavigateToCart = { navController.navigate(AppRoutes.CART) },
+                navController = navController // This line was missing
             )
         }
         composable(AppRoutes.CART) {
@@ -91,6 +96,7 @@ fun AppNavigation() {
                     navController.popBackStack()
                 },
                 onNavigateHome = {
+                    // Navigate back to the shop screen, clearing the back stack
                     navController.navigate(AppRoutes.SHOP) {
                         popUpTo(AppRoutes.SHOP) {
                             inclusive = false
@@ -98,6 +104,24 @@ fun AppNavigation() {
                         launchSingleTop = true
                     }
                 }
+            )
+        }
+
+        composable(AppRoutes.ANALYTICS) {
+            AnalyticsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(AppRoutes.PAYMENT_DASHBOARD) {
+            PaymentDashboardScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(AppRoutes.PRESENCE_VIEWER) {
+            PresenceViewer(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }

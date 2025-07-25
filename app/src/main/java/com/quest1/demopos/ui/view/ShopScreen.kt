@@ -11,14 +11,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.quest1.demopos.ui.components.PrimaryActionButton
 import com.quest1.demopos.ui.components.ProductItemCard
+import com.quest1.demopos.ui.navigation.AppRoutes
 import com.quest1.demopos.ui.theme.LightTextPrimary
 import java.text.NumberFormat
 import java.util.Locale
@@ -30,7 +36,8 @@ import com.quest1.demopos.ui.components.TerminalId
 fun ShopScreen(
     viewModel: ShopViewModel = hiltViewModel(),
     topBarViewModel: ShopTopBarViewModel = hiltViewModel(),
-    onNavigateToCart: () -> Unit
+    onNavigateToCart: () -> Unit,
+    navController: NavController
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val terminalId by topBarViewModel.terminalId.collectAsState()
@@ -46,10 +53,54 @@ fun ShopScreen(
                     TerminalId(terminalId = terminalId, terminalInfo = terminalInfo)
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO */ }) {
-                        Icon(
-                            Icons.Outlined.Settings,
-                            contentDescription = "Settings"
+                    var expanded by remember { mutableStateOf(false) }
+
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(Icons.Outlined.Settings, contentDescription = "Settings")
+                    }
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Store Analytics", style = MaterialTheme.typography.bodySmall, color = Color.Black) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.analytics_24px),
+                                    contentDescription = "Analytics Icon"
+                                )
+                            },
+                            onClick = {
+                                expanded = false
+                                navController.navigate(AppRoutes.ANALYTICS)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Payment Dashboard", style = MaterialTheme.typography.bodySmall, color = Color.Black) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.dashboard_24px),
+                                    contentDescription = "Payment Icon"
+                                )
+                            },
+                            onClick = {
+                                expanded = false
+                                navController.navigate(AppRoutes.PAYMENT_DASHBOARD)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Presence Viewer", style = MaterialTheme.typography.bodySmall, color = Color.Black) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.graph_3_24px),
+                                    contentDescription = "Presence Icon"
+                                )
+                            },
+                            onClick = {
+                                expanded = false
+                                navController.navigate(AppRoutes.PRESENCE_VIEWER)
+                            }
                         )
                     }
                 },
