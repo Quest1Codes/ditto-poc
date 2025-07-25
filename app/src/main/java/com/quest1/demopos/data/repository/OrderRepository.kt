@@ -56,7 +56,7 @@ class OrderRepository @Inject constructor(
                 } catch (e: Exception) {
                     // 3. Replace println with Log.e for better error logging
                     Log.e(TAG, "Error mapping order document: $docMap", e)
-                    null
+                    throw e
                 }
             }
         }
