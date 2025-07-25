@@ -2,8 +2,8 @@ package com.quest1.demopos.ui.view
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.quest1.demopos.data.model.payment.PaymentCard
-import com.quest1.demopos.data.repository.PaymentRepository
+import com.quest1.demopos.data.model.orders.Transaction
+import com.quest1.demopos.domain.usecase.TransactionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,54 +14,34 @@ import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 data class PaymentDashboardUiState(
-    val paymentCards: List<PaymentCard> = emptyList(),
+    val transactions: List<Transaction> = emptyList(),
     val isLoading: Boolean = true,
     val errorMessage: String? = null
 )
 
 @HiltViewModel
 class PaymentDashboardViewModel @Inject constructor(
-    private val paymentRepository: PaymentRepository
+    private val transactionUseCase: TransactionUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PaymentDashboardUiState())
     val uiState: StateFlow<PaymentDashboardUiState> = _uiState.asStateFlow()
 
     init {
-        loadPaymentCards()
+        loadTransactions()
     }
 
-    private fun loadPaymentCards() {
-        paymentRepository.getPaymentCards()
-            .onEach { paymentCards ->
+    private fun loadTransactions() {
+        transactionUseCase.getTransactions()
+            .onEach { transactions ->
                 _uiState.update { currentState ->
                     currentState.copy(
-                        paymentCards = paymentCards,
+                        transactions = transactions,
                         isLoading = false,
                         errorMessage = null
                     )
                 }
             }
             .launchIn(viewModelScope)
-    }
-
-    fun filterByStatus(status: String) {
-        _uiState.update { it.copy(isLoading = true) }
-
-        paymentRepository.getPaymentCardsByStatus(status)
-            .onEach { paymentCards ->
-                _uiState.update { currentState ->
-                    currentState.copy(
-                        paymentCards = paymentCards,
-                        isLoading = false
-                    )
-                }
-            }
-            .launchIn(viewModelScope)
-    }
-
-    fun loadAllPaymentCards() {
-        _uiState.update { it.copy(isLoading = true) }
-        loadPaymentCards()
     }
 }

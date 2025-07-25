@@ -2,7 +2,6 @@ package com.quest1.demopos.data.repository
 
 import com.quest1.demopos.data.model.analytics.Acquirer
 import com.quest1.demopos.data.model.analytics.StorePerformance
-import com.quest1.demopos.data.model.analytics.Transaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -18,27 +17,7 @@ class AnalyticsRepository @Inject constructor() {
         Acquirer(4, "Acquirer D", "failing", "500ms", "95.1%")
     )
 
-    private val recentTransactions = listOf(
-        Transaction("TXN001", "$45.99", "2 mins ago", "success"),
-        Transaction("TXN002", "$120.50", "5 mins ago", "success"),
-        Transaction("TXN003", "$78.25", "8 mins ago", "failed"),
-        Transaction("TXN004", "$200.00", "12 mins ago", "success")
-    )
 
-    private val storePerformance = StorePerformance(
-        totalTransactions = 247,
-        transactionGrowth = "+12% from yesterday",
-        revenueToday = "$12,450",
-        revenueGrowth = "+8% from yesterday"
-    )
-
-    fun getStorePerformance(): Flow<StorePerformance> = flow {
-        emit(storePerformance)
-    }
-
-    fun getRecentTransactions(): Flow<List<Transaction>> = flow {
-        emit(recentTransactions)
-    }
 
     fun getAcquirerRankings(): Flow<List<Acquirer>> = flow {
         emit(mockAcquirers)
