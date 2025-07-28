@@ -40,8 +40,8 @@ class TransactionUseCase @Inject constructor(
                 if(transactions.size > todayTransactions.size) {
                     transactionGrowth = (todayTransactions.size /(transactions.size - todayTransactions.size)) * 100
                 }
-                if(totalRevenue > totalRevenue) {
-                    revenueGrowth = ((totalRevenue / (totalRevenue - todayRevenue)) * 100).toInt()
+                if(totalRevenue > todayRevenue) {
+                    revenueGrowth = ((todayRevenue / (totalRevenue - todayRevenue)) * 100).toInt()
                 }
 
 
@@ -49,7 +49,7 @@ class TransactionUseCase @Inject constructor(
                     totalTransactions = transactions.size,
                     transactionGrowth = "+$transactionGrowth% from yesterday",  // TODO: implement real growth calc
                     revenueToday = formatCurrency(
-                        todayTransactions.sumOf { it.amount },
+                        todayRevenue,
                         todayTransactions.firstOrNull()?.currency ?: "USD"
                     ),
                     revenueGrowth = "+$revenueGrowth% from yesterday"        // TODO: implement real growth calc
@@ -67,6 +67,7 @@ class TransactionUseCase @Inject constructor(
         return LocalDate.now()
             .atStartOfDay()
             .atZone(ZoneId.systemDefault())
-            .toEpochSecond()
+            .toInstant()
+            .toEpochMilli()
     }
 }
