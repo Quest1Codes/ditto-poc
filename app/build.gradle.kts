@@ -77,7 +77,6 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.appcompat)
     implementation(libs.google.android.material)
-    implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 
     // Hilt Dependency Injection
@@ -87,7 +86,7 @@ dependencies {
 
     // Ditto
     implementation(project(":ditto-wrapper"))
-    implementation("live.ditto:ditto:4.8.1")
+    implementation("live.ditto:ditto:4.10.0")
     implementation("live.ditto:ditto-tools-android:4.0.2")
 
     // Network (Retrofit & Moshi)

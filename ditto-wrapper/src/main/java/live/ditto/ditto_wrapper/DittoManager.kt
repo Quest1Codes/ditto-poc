@@ -57,17 +57,20 @@ class DittoManager(
                 dependencies = androidDependencies,
                 appId = dittoAppId,
                 customAuthUrl = dittoAuthUrl,
-                enableDittoCloudSync = true,
+                enableDittoCloudSync = false,
                 callback = AuthCallback()
             )
 
             ditto = Ditto(androidDependencies, identity)
             ditto?.smallPeerInfo?.isEnabled = true
-
-            ditto?.transportConfig?.connect?.websocketUrls?.add(dittoWsUrl)
             ditto?.disableSyncWithV3()
-            ditto?.smallPeerInfo?.syncScope = DittoSmallPeerInfoSyncScope.BigPeerOnly
+            ditto?.updateTransportConfig { config ->
+                // Set the Ditto Websocket URL
+                config.connect.websocketUrls.add(dittoWsUrl)
+            }
+
             ditto?.startSync()
+
             Log.d(TAG, "Ditto ONLINE WITH AUTHENTICATION initialization complete and sync started.")
 
         } catch (e: DittoError) {
