@@ -42,7 +42,7 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
 
     // Ditto
-    implementation("live.ditto:ditto:4.8.1") // Make sure this version matches your app's version
+    implementation("live.ditto:ditto:4.10.0")
 
     // Hilt
     implementation("com.google.dagger:hilt-android:2.48")
