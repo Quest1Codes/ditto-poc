@@ -87,7 +87,7 @@ dependencies {
 
     // Ditto
     implementation(project(":ditto-wrapper"))
-    implementation("live.ditto:ditto:4.8.1")
+    implementation("live.ditto:ditto:4.10.0")
     implementation("live.ditto:ditto-tools-android:4.0.2")
 
     // Network (Retrofit & Moshi)
