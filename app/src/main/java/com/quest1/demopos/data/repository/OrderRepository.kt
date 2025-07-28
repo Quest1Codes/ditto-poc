@@ -1,8 +1,12 @@
 package com.quest1.demopos.data.repository
 
+
+import android.util.Log // 1. Add Log import
 import com.quest1.demopos.data.model.orders.Order
+import com.quest1.demopos.data.model.orders.OrderItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.util.Date
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -10,6 +14,8 @@ import javax.inject.Singleton
 class OrderRepository @Inject constructor(
     private val dittoRepository: DittoRepository
 ) {
+    // 2. Define a TAG for logging
+    private val TAG = "OrderRepository"
 
     init {
         // Start a subscription to sync all order data from the Ditto cloud.
@@ -27,15 +33,72 @@ class OrderRepository @Inject constructor(
 
         return dittoRepository.observeCollection(query, arguments).map { documents ->
             documents.firstOrNull()?.let { docMap ->
-                Order.fromDocument(docMap)
+                try {
+                    // Manually map the document map to an Order object
+                    val itemsList = (docMap["items"] as? List<Map<String, Any?>> ?: emptyList()).mapNotNull { itemMap ->
+                        OrderItem(
+                            itemId = itemMap["itemId"] as String,
+                            name = itemMap["name"] as String,
+                            quantity = (itemMap["quantity"] as Number).toInt(),
+                            cost = (itemMap["cost"] as Number).toInt()
+                        )
+                    }
+                    Order(
+                        id = docMap["_id"].toString(),
+                        terminalId = docMap["terminalId"] as String,
+                        storeId = docMap["storeId"] as String,
+                        status = docMap["status"] as String,
+                        totalAmount = (docMap["totalAmount"] as Number).toDouble(),
+                        createdAt = Date((docMap["createdAt"] as Number).toLong()),
+                        currency = docMap["currency"] as String,
+                        items = itemsList
+                    )
+                } catch (e: Exception) {
+                    // 3. Replace println with Log.e for better error logging
+                    Log.e(TAG, "Error mapping order document: $docMap", e)
+                    throw e
+                }
             }
         }
     }
 
     /**
-     * Inserts or updates an Order in the database.
+     * Inserts a new Order into the database.
      */
-    suspend fun upsertOrder(order: Order) {
-        dittoRepository.upsert(Order.COLLECTION_NAME, order.toDocument())
+    suspend fun saveOrder(order: Order) {
+        val orderMap = convertOrderToMap(order)
+        dittoRepository.upsert(Order.COLLECTION_NAME, orderMap)
+    }
+
+    /**
+     * Updates an existing Order in the database.
+     */
+    suspend fun updateOrder(order: Order) {
+        val orderMap = convertOrderToMap(order)
+        dittoRepository.upsert(Order.COLLECTION_NAME, orderMap)
+    }
+
+    /**
+     * Converts an Order data class to a Map for Ditto.
+     */
+    private fun convertOrderToMap(order: Order): Map<String, Any?> {
+        val orderItemsAsMaps = order.items.map {
+            mapOf(
+                "itemId" to it.itemId,
+                "name" to it.name,
+                "quantity" to it.quantity,
+                "cost" to it.cost
+            )
+        }
+        return mapOf(
+            "_id" to order.id,
+            "terminalId" to order.terminalId,
+            "storeId" to order.storeId,
+            "status" to order.status,
+            "totalAmount" to order.totalAmount,
+            "createdAt" to order.createdAt.time, // Convert Date to Long for storage
+            "currency" to order.currency,
+            "items" to orderItemsAsMaps
+        )
     }
 }
