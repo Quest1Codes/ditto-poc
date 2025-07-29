@@ -1,83 +1,68 @@
-package com.quest1.demopos.domain.usecase.order
+package com.quest1.demopos.domain.usecase
 
 import android.util.Log
 import com.quest1.demopos.data.model.orders.Order
 import com.quest1.demopos.data.model.orders.Transaction
-import com.quest1.demopos.data.model.payment.Gateway // <-- IMPORT a
+import com.quest1.demopos.data.model.payment.GatewayPerformanceMetrics
 import com.quest1.demopos.data.network.PaymentRequest
 import com.quest1.demopos.data.network.PaymentResponse
 import com.quest1.demopos.data.repository.OrderRepository
 import com.quest1.demopos.data.repository.PaymentRepository
 import com.quest1.demopos.data.repository.TransactionRepository
-import kotlinx.coroutines.flow.first // <-- IMPORT b
-import java.util.Date
-import java.text.SimpleDateFormat
-import java.util.Locale
+import com.quest1.demopos.domain.usecase.MabGatewaySelector
+import com.quest1.demopos.domain.usecase.GatewayPerformanceData
+import kotlinx.coroutines.flow.first
+import java.util.*
 import javax.inject.Inject
-import java.util.UUID
 
 class ProcessPaymentUseCase @Inject constructor(
     private val orderRepository: OrderRepository,
     private val paymentRepository: PaymentRepository,
-    private val transactionRepository: TransactionRepository
+    private val transactionRepository: TransactionRepository,
+    private val mabGatewaySelector: MabGatewaySelector,
+    private val performanceData: GatewayPerformanceData
 ) {
     suspend fun execute(): Result<PaymentResponse> {
-
-        // 1. Get the current active order.
         val activeOrder = orderRepository.observeActiveOrder().first()
             ?: return Result.failure(Exception("No active order found."))
 
-        // 2. Get available payment gateways.
-        val gateways = paymentRepository.getAvailableGateways().first()
-        if (gateways.isEmpty()) {
-            return Result.failure(Exception("No payment gateways available."))
-        }
-
-        // 3. Define the acquirer and start time BEFORE the try block to make them available to the catch block.
-        val selectedAcquirer = gateways.random()
+        val selectedAcquirer = mabGatewaySelector.selectGateway()
         val startTime = System.currentTimeMillis()
-        return try {
+        var paymentResponse: PaymentResponse? = null
+        var exception: Exception? = null
+
+        try {
             val paymentRequest = PaymentRequest(
                 orderId = activeOrder.id,
                 amount = activeOrder.totalAmount,
                 currency = activeOrder.currency
             )
-            val response = paymentRepository.processPayment(selectedAcquirer, paymentRequest)
+            paymentResponse = paymentRepository.processPayment(selectedAcquirer, paymentRequest)
             val endTime = System.currentTimeMillis()
             val latency = endTime - startTime
 
-            // 4. Create a transaction record from the response.
             val transaction = Transaction(
-                id = response.transactionId,
+                id = paymentResponse.transactionId,
                 orderId = activeOrder.id,
-                acquirerId = selectedAcquirer.id, // This will now resolve correctly
-                acquirerName = selectedAcquirer.name, // This will now resolve correctly
-                status = response.status,
-                amount = response.totalAmount,
+                acquirerId = selectedAcquirer.id,
+                acquirerName = selectedAcquirer.name,
+                status = paymentResponse.status,
+                amount = paymentResponse.totalAmount,
                 currency = activeOrder.currency,
-                failureReason = response.failureReason,
+                failureReason = paymentResponse.failureReason,
                 latencyMs = latency,
                 createdAt = startTime
             )
-
-            // 5. Save the transaction record to Ditto.
             transactionRepository.saveTransaction(transaction)
-            Log.d("ProcessPaymentUseCase", "Transaction record saved to Ditto: ${transaction.id}")
-            Log.d("ProcessPaymentUseCase", "Transaction status: ${response.status}")
 
-
-
-            // 6. If successful, update the order status to "COMPLETED".
-            if (response.status == "SUCCESS") {
+            if (paymentResponse.status == "SUCCESS") {
                 val completedOrder = activeOrder.copy(status = Order.STATUS_COMPLETED)
                 orderRepository.updateOrder(completedOrder)
             }
-
-            Result.success(response)
+            return Result.success(paymentResponse)
         } catch (e: Exception) {
+            exception = e
             Log.e("ProcessPaymentUseCase", "Payment processing failed with an exception", e)
-
-            // Create and save a FAILED transaction record for the exception.
             val failedTransaction = Transaction(
                 id = "txn_exc_${UUID.randomUUID()}",
                 orderId = activeOrder.id,
@@ -91,9 +76,37 @@ class ProcessPaymentUseCase @Inject constructor(
                 createdAt = startTime
             )
             transactionRepository.saveTransaction(failedTransaction)
-            Log.w("ProcessPaymentUseCase", "Saved failed transaction record for exception: ${failedTransaction.id}")
+            return Result.failure(e)
+        } finally {
+            val wasSuccess = paymentResponse?.status == "SUCCESS" && exception == null
+            val latency = System.currentTimeMillis() - startTime
 
-            Result.failure(e)
+            val metric = GatewayPerformanceMetrics(
+                transactionId = paymentResponse?.transactionId ?: "txn_exc_${UUID.randomUUID()}",
+                gatewayId = selectedAcquirer.id,
+                terminalId = activeOrder.terminalId, // <-- ADDED
+                timestamp = System.currentTimeMillis(),
+                metrics = mapOf("latencyMs" to latency),
+                wasSuccess = wasSuccess,
+                failureCode = paymentResponse?.failureReason ?: exception?.message
+            )
+            performanceData.metrics.add(metric)
+
+            // Log the newly added metric for debugging
+            Log.d("MAB_METRIC_ADDED", "New Metric: $metric")
+
+            // Calculate and log the updated performance stats for the selected gateway
+            val gatewayStats = performanceData.metrics.filter { it.gatewayId == selectedAcquirer.id }
+            val totalAttempts = gatewayStats.size
+            val totalSuccesses = gatewayStats.count { it.wasSuccess }
+
+            Log.d(
+                "MAB_PERFORMANCE_UPDATE",
+                "Gateway: ${selectedAcquirer.name} (ID: ${selectedAcquirer.id}), " +
+                        "Attempts: $totalAttempts, " +
+                        "Successes: $totalSuccesses, " +
+                        "Success Rate: ${if (totalAttempts > 0) "%.2f".format(totalSuccesses.toDouble() / totalAttempts.toDouble()) else "N/A"}"
+            )
         }
     }
 }
