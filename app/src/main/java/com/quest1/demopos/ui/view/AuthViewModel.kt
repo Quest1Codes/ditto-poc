@@ -83,4 +83,8 @@ class AuthViewModel @Inject constructor(
             }
         }
     }
+
+    fun logout () {
+        dittoManager.logout()
+    }
 }

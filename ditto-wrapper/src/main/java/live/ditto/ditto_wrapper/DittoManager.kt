@@ -63,13 +63,13 @@ class DittoManager(
 
             ditto = Ditto(androidDependencies, identity)
             ditto?.smallPeerInfo?.isEnabled = true
+
             ditto?.disableSyncWithV3()
             ditto?.updateTransportConfig { config ->
                 // Set the Ditto Websocket URL
                 config.connect.websocketUrls.add(dittoWsUrl)
+                config.enableAllPeerToPeer()
             }
-
-            ditto?.startSync()
 
             Log.d(TAG, "Ditto ONLINE WITH AUTHENTICATION initialization complete and sync started.")
 
@@ -83,14 +83,15 @@ class DittoManager(
     }
 
     fun provideTokenToAuthenticator(token: String) {
-        authenticator?.let {
+        ditto?.let {
             try {
-                it.login(token, "auth-webhook") { _, err ->
+                it.auth?.login(token, "auth-webhook") { _, err ->
                     if (err != null) {
                         Log.e(TAG, "Ditto login failed: ${err.message}")
                     } else {
                         Log.d(TAG, "Ditto login request completed successfully.")
                         _isAuthenticationRequired.value = false
+                        ditto?.startSync()
                     }
                 }
             } catch (e: DittoError) {
@@ -100,6 +101,13 @@ class DittoManager(
     }
     fun requireDitto(): Ditto {
         return ditto ?: throw DittoNotCreatedException()
+    }
+
+    fun logout() {
+        ditto?.auth?.logout()
+        ditto?.stopSync()
+        _isAuthenticationRequired.value = true;
+
     }
 }
 
