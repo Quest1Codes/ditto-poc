@@ -66,7 +66,7 @@ def auth_webhook():
 
         response = {
             "authenticated": True,
-            "userID": user_id,
+            "userID": "6880674ccd221c74c058ab73",
             "expirationSeconds": 8 * 60 * 60,
             "permissions": permissions,
             "identityServiceMetadata": {"userRole": role},
