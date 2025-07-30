@@ -50,8 +50,8 @@ class ProcessPaymentUseCase @Inject constructor(
             val transaction = Transaction(
                 id = response.transactionId,
                 orderId = activeOrder.id,
-                acquirerId = selectedAcquirer.id, // This will now resolve correctly
-                acquirerName = selectedAcquirer.name, // This will now resolve correctly
+                acquirerId = selectedAcquirer.id,
+                acquirerName = selectedAcquirer.name,
                 status = response.status,
                 amount = response.totalAmount,
                 currency = activeOrder.currency,

@@ -1,17 +1,9 @@
 package com.quest1.demopos.data.repository
 
 import android.util.Log
-import com.quest1.demopos.data.model.core.Coordinates
-import com.quest1.demopos.data.model.core.Location
-import com.quest1.demopos.data.model.core.Organization
-import com.quest1.demopos.data.model.core.Store
 import com.quest1.demopos.data.model.core.Terminal
 import com.quest1.demopos.data.model.core.TerminalInfo
-import com.quest1.demopos.data.model.core.User
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import live.ditto.ditto_wrapper.DittoManager
@@ -24,7 +16,7 @@ class CoreRepository @Inject constructor(
     private val sessionManager: SessionManager
 ) {
 
-    suspend fun upsertTerminal(terminal: Terminal) {
+    suspend fun saveTerminal(terminal: Terminal) {
         try {
             val ditto = dittoManager.requireDitto()
             val queryString = "INSERT INTO ${Terminal.COLLECTION_NAME} DOCUMENTS (:terminal) ON ID CONFLICT DO UPDATE"
