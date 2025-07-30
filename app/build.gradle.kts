@@ -78,6 +78,8 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.google.android.material)
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation("com.auth0:java-jwt:4.4.0")
 
     // Hilt Dependency Injection
     implementation(libs.google.dagger.hilt.android)

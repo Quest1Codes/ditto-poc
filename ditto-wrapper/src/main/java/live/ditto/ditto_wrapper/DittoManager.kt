@@ -70,7 +70,7 @@ class DittoManager(
                 config.connect.websocketUrls.add(dittoWsUrl)
             }
 
-            ditto?.startSync()
+
 
             Log.d(TAG, "Ditto ONLINE WITH AUTHENTICATION initialization complete and sync started.")
 
@@ -84,14 +84,15 @@ class DittoManager(
     }
 
     fun provideTokenToAuthenticator(token: String) {
-        authenticator?.let {
+        ditto?.let {
             try {
-                it.login(token, "auth-webhook") { _, err ->
+                ditto?.auth?.login(token, "auth-webhook") { _, err ->
                     if (err != null) {
                         Log.e(TAG, "Ditto login failed: ${err.message}")
                     } else {
                         Log.d(TAG, "Ditto login request completed successfully.")
                         _isAuthenticationRequired.value = false
+                        ditto?.startSync()
                     }
                 }
             } catch (e: DittoError) {
