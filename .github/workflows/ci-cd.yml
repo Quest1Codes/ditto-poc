@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - gateway-ui
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
