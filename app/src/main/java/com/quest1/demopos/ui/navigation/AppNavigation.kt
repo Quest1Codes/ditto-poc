@@ -2,6 +2,8 @@ package com.quest1.demopos.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -34,7 +36,19 @@ fun AppNavigation() {
     // The ShopViewModel is shared between the Shop and Cart screens
     val shopViewModel: ShopViewModel = hiltViewModel()
 
-    NavHost(navController = navController, startDestination = AppRoutes.AUTH) {
+    val authViewModel: AuthViewModel = hiltViewModel()
+    val authState by authViewModel.authState.collectAsState()
+
+    // This will re-evaluate whenever authState changes
+    val startDestination = remember(authState) {
+        if (authState is AuthState.Success) {
+            AppRoutes.SHOP
+        } else {
+            AppRoutes.AUTH
+        }
+    }
+
+    NavHost(navController = navController, startDestination = startDestination) {
         composable(AppRoutes.AUTH) {
             AuthScreen(
                 onLoginSuccess = { role ->
