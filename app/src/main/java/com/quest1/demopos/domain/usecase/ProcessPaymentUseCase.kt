@@ -1,11 +1,13 @@
 package com.quest1.demopos.domain.usecase
 
 import android.util.Log
+import com.quest1.demopos.data.model.analytics.GatewayPerformance
 import com.quest1.demopos.data.model.orders.Order
 import com.quest1.demopos.data.model.orders.Transaction
 import com.quest1.demopos.data.model.payment.GatewayPerformanceMetrics
 import com.quest1.demopos.data.network.PaymentRequest
 import com.quest1.demopos.data.network.PaymentResponse
+import com.quest1.demopos.data.repository.GatewayPerformanceRepositoryImpl
 import com.quest1.demopos.data.repository.OrderRepository
 import com.quest1.demopos.data.repository.PaymentRepository
 import com.quest1.demopos.data.repository.TransactionRepository
@@ -20,8 +22,10 @@ class ProcessPaymentUseCase @Inject constructor(
     private val paymentRepository: PaymentRepository,
     private val transactionRepository: TransactionRepository,
     private val mabGatewaySelector: MabGatewaySelector,
-    private val performanceData: GatewayPerformanceData
-) {
+    private val performanceData: GatewayPerformanceData,
+    private val gatewayPerformanceRepository: GatewayPerformanceRepositoryImpl,
+
+    ) {
     suspend fun execute(): Result<PaymentResponse> {
         val activeOrder = orderRepository.observeActiveOrder().first()
             ?: return Result.failure(Exception("No active order found."))
@@ -59,6 +63,7 @@ class ProcessPaymentUseCase @Inject constructor(
                 val completedOrder = activeOrder.copy(status = Order.STATUS_COMPLETED)
                 orderRepository.updateOrder(completedOrder)
             }
+
             return Result.success(paymentResponse)
         } catch (e: Exception) {
             exception = e
@@ -95,18 +100,40 @@ class ProcessPaymentUseCase @Inject constructor(
             // Log the newly added metric for debugging
             Log.d("MAB_METRIC_ADDED", "New Metric: $metric")
 
-            // Calculate and log the updated performance stats for the selected gateway
-            val gatewayStats = performanceData.metrics.filter { it.gatewayId == selectedAcquirer.id }
-            val totalAttempts = gatewayStats.size
-            val totalSuccesses = gatewayStats.count { it.wasSuccess }
-
-            Log.d(
-                "MAB_PERFORMANCE_UPDATE",
-                "Gateway: ${selectedAcquirer.name} (ID: ${selectedAcquirer.id}), " +
-                        "Attempts: $totalAttempts, " +
-                        "Successes: $totalSuccesses, " +
-                        "Success Rate: ${if (totalAttempts > 0) "%.2f".format(totalSuccesses.toDouble() / totalAttempts.toDouble()) else "N/A"}"
+            updatePerformanceMetrics(
+                gatewayId = selectedAcquirer.id,
+                gatewayName = selectedAcquirer.name,
+                wasSuccess = paymentResponse?.status == "SUCCESS"
             )
+
         }
+    }
+
+    private suspend fun updatePerformanceMetrics(gatewayId: String, gatewayName: String, wasSuccess: Boolean) {
+        val allPerformance = gatewayPerformanceRepository.observePerformanceRankings().first()
+        val currentPerf = allPerformance.find { it.gatewayId == gatewayId }
+
+        val totalAttempts = (currentPerf?.totalAttempts ?: 0) + 1
+        val totalSuccesses = (currentPerf?.totalSuccesses ?: 0) + if (wasSuccess) 1 else 0
+        val successRate = if (totalAttempts > 0) totalSuccesses.toDouble() / totalAttempts.toDouble() else 0.0
+
+        val newPerformance = GatewayPerformance(
+            _id = gatewayId,
+            gatewayId = gatewayId,
+            gatewayName = gatewayName,
+            totalAttempts = totalAttempts,
+            totalSuccesses = totalSuccesses,
+            successRate = successRate
+        )
+
+        gatewayPerformanceRepository.upsertPerformance(newPerformance)
+
+        Log.d(
+            "MAB_PERFORMANCE_UPDATE",
+            "Gateway: $gatewayName (ID: $gatewayId), " +
+                    "Attempts: $totalAttempts, " +
+                    "Successes: $totalSuccesses, " +
+                    "Success Rate: ${"%.2f".format(successRate)}"
+        )
     }
 }

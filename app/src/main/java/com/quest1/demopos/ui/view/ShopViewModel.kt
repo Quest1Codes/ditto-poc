@@ -69,7 +69,7 @@ class ShopViewModel @Inject constructor(
             // Take the first emission from the flow to get the initial state.
             val initialInventory = getShopItemsUseCase.execute().first()
             if (initialInventory.isEmpty()) {
-//                addSampleItemsForTesting()
+                addSampleItemsForTesting()
             }
         }
     }

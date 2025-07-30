@@ -8,6 +8,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import live.ditto.ditto_wrapper.DittoManager
+import live.ditto.ditto_wrapper.DittoStoreManager
 import javax.inject.Singleton
 
 @Module
@@ -27,5 +28,11 @@ object AppModule {
             dittoWsUrl = dittoWsUrl
 
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideDittoStoreManager(dittoManager: DittoManager): DittoStoreManager {
+        return DittoStoreManager(dittoManager.requireDitto())
     }
 }
