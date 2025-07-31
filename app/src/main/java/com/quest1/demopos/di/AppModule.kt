@@ -1,6 +1,9 @@
 package com.quest1.demopos.di
 
 import android.content.Context
+import android.content.SharedPreferences
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKeys
 import com.quest1.demopos.BuildConfig
 import dagger.Module
 import dagger.Provides
@@ -26,6 +29,25 @@ object AppModule {
             dittoAuthUrl= dittoAuthUrl,
             dittoWsUrl = dittoWsUrl
 
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideMasterKeyAlias(): String = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
+
+    @Provides
+    @Singleton
+    fun provideEncryptedSharedPreferences(
+        @ApplicationContext context: Context,
+        masterKeyAlias: String
+    ): SharedPreferences {
+        return EncryptedSharedPreferences.create(
+            "auth_prefs",
+            masterKeyAlias,
+            context,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
     }
 }
