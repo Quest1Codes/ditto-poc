@@ -2,6 +2,8 @@ package com.quest1.demopos.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -14,7 +16,7 @@ object AppRoutes {
     const val AUTH = "auth"
     const val SHOP = "shop"
     const val CART = "cart"
-    const val PAYMENT_GATEWAY = "payment_gateway" // New Route
+    const val PAYMENT_GATEWAY = "payment_gateway"
     const val PAYMENT = "payment"
 
     // NEW
@@ -31,10 +33,20 @@ object AppRoutes {
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    // The ShopViewModel is shared between the Shop and Cart screens
     val shopViewModel: ShopViewModel = hiltViewModel()
 
-    NavHost(navController = navController, startDestination = AppRoutes.AUTH) {
+    val authViewModel: AuthViewModel = hiltViewModel()
+    val authState by authViewModel.authState.collectAsState()
+
+    val startDestination = remember(authState) {
+        if (authState is AuthState.Success) {
+            AppRoutes.SHOP
+        } else {
+            AppRoutes.AUTH
+        }
+    }
+
+    NavHost(navController = navController, startDestination = startDestination) {
         composable(AppRoutes.AUTH) {
             AuthScreen(
                 onLoginSuccess = { role ->
@@ -50,7 +62,7 @@ fun AppNavigation() {
             ShopScreen(
                 viewModel = shopViewModel,
                 onNavigateToCart = { navController.navigate(AppRoutes.CART) },
-                navController = navController // This line was missing
+                navController = navController
             )
         }
         composable(AppRoutes.CART) {
@@ -61,26 +73,25 @@ fun AppNavigation() {
                     navController.popBackStack()
                 },
                 onProceedToPayment = {
-                    // Navigate to the new Payment Gateway Screen
                     val totalAmount = uiState.cartTotal
-                    val orderNumber = (1000000..9999999).random() // Generate a random order number
-                    navController.navigate("${AppRoutes.PAYMENT_GATEWAY}/$totalAmount/$orderNumber")
+                    val orderId = uiState.activeOrderId
+                    if (orderId != null) {
+                        navController.navigate("${AppRoutes.PAYMENT_GATEWAY}/$totalAmount/$orderId")
+                    }
                 }
             )
         }
 
-        // New composable for the Payment Gateway screen
         composable(
-            route = "${AppRoutes.PAYMENT_GATEWAY}/{totalAmount}/{orderNumber}",
+            route = "${AppRoutes.PAYMENT_GATEWAY}/{totalAmount}/{orderId}",
             arguments = listOf(
                 navArgument("totalAmount") { type = NavType.StringType },
-                navArgument("orderNumber") { type = NavType.StringType }
+                navArgument("orderId") { type = NavType.StringType }
             )
         ) {
             PaymentGatewayScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onPayNowClicked = {
-                    // After clicking Pay Now, navigate to the final processing screen
                     navController.navigate(AppRoutes.PAYMENT)
                 }
             )
@@ -89,7 +100,7 @@ fun AppNavigation() {
         composable(AppRoutes.PAYMENT) {
             val paymentViewModel: PaymentViewModel = hiltViewModel()
             PaymentScreen(
-                shopViewModel = shopViewModel, // Pass the ShopViewModel instance
+                shopViewModel = shopViewModel,
                 viewModel = paymentViewModel,
                 onNavigateBack = {
                     paymentViewModel.reset()

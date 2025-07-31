@@ -7,24 +7,20 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 import com.quest1.demopos.data.defaultPaymentMethod
 
-/**
- * Request body for initiating a payment.
- */
+
 @JsonClass(generateAdapter = true)
 data class PaymentRequest(
     val orderId: String,
     val amount: Double,
     val currency: String,
-    val paymentMethod: String =  defaultPaymentMethod// Default to card from DemoData
+    val paymentMethod: String =  defaultPaymentMethod
 )
 
-/**
- * Response body received after a payment is processed.
- */
+
 @JsonClass(generateAdapter = true)
 data class PaymentResponse(
     val transactionId: String,
-    val status: String, // e.g., "SUCCESS", "FAILED"
+    val status: String,
     val acquirerId: String,
     val acquirerName: String,
     val orderId: String,
@@ -32,10 +28,7 @@ data class PaymentResponse(
     val failureReason: String? = null
 )
 
-/**
- * Retrofit interface for the payment gateway service.
- * This defines the endpoints for processing payments.
- */
+
 interface PaymentApiService {
     /**
      * Submits a payment request to a specific acquirer.

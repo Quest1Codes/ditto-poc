@@ -8,9 +8,6 @@ import java.util.UUID
  * A file to hold all stub/hardcoded data for demonstration and testing purposes.
  */
 
-/**
- * A list of stub payment gateways.
- */
 val stubGateways = listOf(
     Gateway(
         id = "stripe_21",
@@ -33,10 +30,6 @@ val stubGateways = listOf(
     )
 )
 
-/**
- * A list of sample inventory items for the shop.
- * Used to seed the database for testing if it's empty.
- */
 val sampleItems = listOf(
     Item(
         id = UUID.randomUUID().toString(),
@@ -130,8 +123,5 @@ val sampleItems = listOf(
     )
 )
 
-/**
- * The default payment method to be used in payment requests.
- */
 const val defaultPaymentMethod: String = "card"
 

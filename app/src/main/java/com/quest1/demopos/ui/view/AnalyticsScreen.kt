@@ -40,7 +40,6 @@ fun AnalyticsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    /* ---------- TOP BAR (left-aligned) ---------- */
     Scaffold(
         topBar = {
             TopAppBar(
@@ -49,7 +48,7 @@ fun AnalyticsScreen(
                         Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
                     }
                 },
-                title = { Text("Store Dashboard") },              // ← left-aligned by default
+                title = { Text("Store Dashboard") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
                 )
@@ -57,7 +56,6 @@ fun AnalyticsScreen(
         }
     ) { paddingValues ->
 
-        /* ---------- BODY ---------- */
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -67,14 +65,12 @@ fun AnalyticsScreen(
             contentPadding = PaddingValues(vertical = 16.dp)
         ) {
 
-            /* 1 ▸  “My Shop” header row moved from app-bar */
             item { StoreHeader() }
 
             item {
                 Divider()
             }
 
-            /* 2 ▸  Performance cards + recent transactions */
             item {
                 StorePerformanceSection(
                     performance = uiState.storePerformance,
@@ -82,15 +78,11 @@ fun AnalyticsScreen(
                 )
             }
 
-            /* 3 ▸  Live acquirer rankings */
             item { LiveAcquirerRankingsSection(acquirers = uiState.acquirers) }
         }
     }
 }
 
-/* ──────────────────────────────── */
-/* Re-usable header now in the body */
-/* ──────────────────────────────── */
 @Composable
 private fun StoreHeader() {
     Row(
@@ -129,7 +121,6 @@ fun StorePerformanceSection(
             style = MaterialTheme.typography.headlineSmall
         )
 
-        // Performance Cards
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -193,7 +184,6 @@ fun StorePerformanceSection(
             }
         }
 
-        // Recent Transactions Card
         Card(
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             colors = CardDefaults.cardColors(
