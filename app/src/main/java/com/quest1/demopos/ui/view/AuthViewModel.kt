@@ -3,7 +3,6 @@ package com.quest1.demopos.ui.view
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.quest1.demopos.data.repository.AuthRepository
-import com.quest1.demopos.data.repository.LoginResult // Import the new data class
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +13,7 @@ import kotlinx.coroutines.flow.collect // <-- ADDED IMPORT
 import kotlinx.coroutines.flow.combine
 import android.util.Log
 import com.quest1.demopos.data.repository.SessionManager
-import com.quest1.demopos.domain.usecase.UpsertTerminalUseCase
+import com.quest1.demopos.domain.usecase.SaveTerminalUseCase
 
 sealed class AuthState {
     object Idle : AuthState()
@@ -27,7 +26,7 @@ sealed class AuthState {
 class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val dittoManager: DittoManager,
-    private val upsertTerminalUseCase: UpsertTerminalUseCase,
+    private val saveTerminalUseCase: SaveTerminalUseCase,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
@@ -61,7 +60,7 @@ class AuthViewModel @Inject constructor(
                 _loginResultToken.value = loginResult.accessToken
                 _authState.value = AuthState.Success(loginResult.role)
                 viewModelScope.launch {
-                    upsertTerminalUseCase.execute(username) // Using username as the terminal ID
+                    saveTerminalUseCase.execute(username) // Using username as the terminal ID
                 }
             }.onFailure { error ->
                 _authState.value = AuthState.Error(error.message ?: "An unknown error occurred")

@@ -35,14 +35,14 @@ import java.util.Locale
 import kotlin.math.abs
 
 // Helper to format currency
-private fun formatCurrency(amount: Double, isDiscount: Boolean = false): String {
+private fun formatCurrency(amount: Double): String {
     val format = NumberFormat.getCurrencyInstance(Locale("en", "US")).apply {
         maximumFractionDigits = 2
         minimumFractionDigits = 2
         currency = java.util.Currency.getInstance("USD")
     }
-    val formatted = format.format(abs(amount))
-    return if (isDiscount) "-$formatted" else formatted
+    val formatted = format.format(amount)
+    return formatted
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

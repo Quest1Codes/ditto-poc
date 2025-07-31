@@ -4,7 +4,7 @@ import com.quest1.demopos.data.model.core.Terminal
 import com.quest1.demopos.data.repository.CoreRepository
 import javax.inject.Inject
 
-class UpsertTerminalUseCase @Inject constructor(
+class SaveTerminalUseCase @Inject constructor(
     private val coreRepository: CoreRepository
 ) {
     suspend fun execute(userId: String) {
@@ -15,6 +15,6 @@ class UpsertTerminalUseCase @Inject constructor(
             ipAddress = "192.168.1.101", // Stubbed IP Address
             lastSeen = System.currentTimeMillis()
         )
-        coreRepository.upsertTerminal(terminal)
+        coreRepository.saveTerminal(terminal)
     }
 }
