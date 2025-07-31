@@ -12,10 +12,11 @@ failure_reasons = [
     "Expired card",
     "Invalid CVC",
     "Transaction blocked by fraud filter",
-    "Gateway timeout"
+    "Gateway timeout",
 ]
 
-@app.route('/<acquirer_id>/pay', methods=['POST'])
+
+@app.route("/<acquirer_id>/pay", methods=["POST"])
 def process_payment(acquirer_id):
     """
     This is the actual endpoint that the Android app will hit.
@@ -54,12 +55,9 @@ def process_payment(acquirer_id):
             "acquirerName": acquirer_id.capitalize(),
             "orderId": payment_request.get("orderId"),
             "totalAmount": payment_request.get("amount"),
-            "failureReason": random.choice(failure_reasons)
+            "failureReason": random.choice(failure_reasons),
         }
-        print(f"Payment failed for order {payment_request.get('orderId')}. Reason: {response_data['failureReason']}")
+        print(
+            f"Payment failed for order {payment_request.get('orderId')}. Reason: {response_data['failureReason']}"
+        )
         return jsonify(response_data), 400
-
-if __name__ == '__main__':
-    # Running on port 5002 to avoid conflict with the auth service on 5001
-    print("Starting payment server on port 5002...")
-    app.run(host='0.0.0.0', port=5002, debug=True)

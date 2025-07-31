@@ -22,7 +22,8 @@ class ProcessPaymentUseCase @Inject constructor(
     private val transactionRepository: TransactionRepository
 ) {
     suspend fun execute(): Result<PaymentResponse> {
-        // 1. Get the current active order. This also validates that an order exists.
+
+        // 1. Get the current active order.
         val activeOrder = orderRepository.observeActiveOrder().first()
             ?: return Result.failure(Exception("No active order found."))
 
@@ -35,9 +36,7 @@ class ProcessPaymentUseCase @Inject constructor(
         // 3. Define the acquirer and start time BEFORE the try block to make them available to the catch block.
         val selectedAcquirer = gateways.random()
         val startTime = System.currentTimeMillis()
-
         return try {
-            // This code now runs within the try block, but uses variables defined outside.
             val paymentRequest = PaymentRequest(
                 orderId = activeOrder.id,
                 amount = activeOrder.totalAmount,
@@ -47,7 +46,7 @@ class ProcessPaymentUseCase @Inject constructor(
             val endTime = System.currentTimeMillis()
             val latency = endTime - startTime
 
-            // 4. Create a transaction record from the successful response.
+            // 4. Create a transaction record from the response.
             val transaction = Transaction(
                 id = response.transactionId,
                 orderId = activeOrder.id,
@@ -61,10 +60,12 @@ class ProcessPaymentUseCase @Inject constructor(
                 createdAt = startTime
             )
 
-            // 5. Save the successful transaction record to Ditto.
+            // 5. Save the transaction record to Ditto.
             transactionRepository.saveTransaction(transaction)
             Log.d("ProcessPaymentUseCase", "Transaction record saved to Ditto: ${transaction.id}")
             Log.d("ProcessPaymentUseCase", "Transaction status: ${response.status}")
+
+
 
             // 6. If successful, update the order status to "COMPLETED".
             if (response.status == "SUCCESS") {

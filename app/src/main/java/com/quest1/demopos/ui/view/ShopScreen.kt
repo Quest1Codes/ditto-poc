@@ -22,23 +22,35 @@ import com.quest1.demopos.ui.components.ProductItemCard
 import com.quest1.demopos.ui.theme.LightTextPrimary
 import java.text.NumberFormat
 import java.util.Locale
+import com.quest1.demopos.R // Make sure to import your R file
+import com.quest1.demopos.ui.components.TerminalId
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShopScreen(
     viewModel: ShopViewModel = hiltViewModel(),
+    topBarViewModel: ShopTopBarViewModel = hiltViewModel(),
     onNavigateToCart: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val terminalId by topBarViewModel.terminalId.collectAsState()
+    val terminalInfo by topBarViewModel.terminalInfo.collectAsState()
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "US"))
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("My Shop", style = MaterialTheme.typography.headlineLarge) },
+                title = { /* MyShop Text is removed as requested */ },
+                navigationIcon = {
+                    // Pass both pieces of state to the composable
+                    TerminalId(terminalId = terminalId, terminalInfo = terminalInfo)
+                },
                 actions = {
                     IconButton(onClick = { /* TODO */ }) {
-                        Icon(Icons.Outlined.Settings, contentDescription = "Settings")
+                        Icon(
+                            Icons.Outlined.Settings,
+                            contentDescription = "Settings"
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(

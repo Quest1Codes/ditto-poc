@@ -4,6 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.quest1.demopos.BuildConfig
 import com.quest1.demopos.domain.usecase.order.ProcessPaymentUseCase
+import com.quest1.demopos.data.model.orders.Order
+import com.quest1.demopos.data.model.orders.OrderItem
+import com.quest1.demopos.data.repository.OrderRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -13,6 +16,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Date
+import java.util.UUID
 import javax.inject.Inject
 
 enum class PaymentStatus {
@@ -31,7 +36,9 @@ data class PaymentUiState(
 
 @HiltViewModel
 class PaymentViewModel @Inject constructor(
+    private val orderRepository: OrderRepository,
     private val processPaymentUseCase: ProcessPaymentUseCase
+
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PaymentUiState())

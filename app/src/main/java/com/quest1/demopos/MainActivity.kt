@@ -15,8 +15,6 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             Quest1POSTheme {
-                // This is the only line that needs to be changed.
-                // It should call AppNavigation() to start your main app flow.
                 AppNavigation()
             }
         }

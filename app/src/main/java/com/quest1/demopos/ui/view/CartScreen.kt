@@ -22,6 +22,7 @@ import com.quest1.demopos.ui.view.ShopViewModel // Assuming ShopScreen component
 import java.text.NumberFormat
 import java.util.Locale
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartScreen(

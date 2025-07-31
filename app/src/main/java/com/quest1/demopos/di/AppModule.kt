@@ -18,7 +18,6 @@ object AppModule {
     @Singleton
     fun provideDittoManager(@ApplicationContext context: Context): DittoManager {
         val dittoAppId = BuildConfig.DITTO_APP_ID
-        val dittoToken = BuildConfig.DITTO_TOKEN
         val dittoAuthUrl = BuildConfig.DITTO_AUTH_URL
         val dittoWsUrl = BuildConfig.DITTO_WS_URL
         return DittoManager(

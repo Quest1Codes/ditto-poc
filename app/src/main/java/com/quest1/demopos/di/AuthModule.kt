@@ -30,8 +30,6 @@ object AuthModule {
     @Provides
     @Singleton
     fun provideRetrofit(moshi: Moshi): Retrofit {
-        // IMPORTANT: Replace with the local IP of the machine running the auth service Docker container.
-        // For Android Emulator, use 10.0.2.2 to connect to the host machine's localhost.
         val baseUrl = BuildConfig.AUTH_SERVICE_BASE_URL
         return Retrofit.Builder()
             .baseUrl(baseUrl)

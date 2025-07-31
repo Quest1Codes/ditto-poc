@@ -1,119 +1,318 @@
 package com.quest1.demopos.ui.view
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-
-/**
- * A composable screen for user login and registration.
- *
- * @param onLoginSuccess A callback invoked with the user's role upon successful authentication.
- * @param viewModel The view model that handles the authentication logic.
- */
+import com.quest1.demopos.R // Make sure to import your R file
+import com.quest1.demopos.ui.theme.LightTextPrimary
+import androidx.compose.foundation.Image
 @Composable
 fun AuthScreen(
     onLoginSuccess: (String) -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
-    // State for UI input fields
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var role by remember { mutableStateOf("cashier") } // Default role for registration
     var isRegistering by remember { mutableStateOf(false) }
 
-    // Observe the authentication state from the ViewModel
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        // Toggles between Login and Register UIs
+        if (isRegistering) {
+            RegisterUI(viewModel = viewModel) {
+                isRegistering = false
+            }
+        } else {
+            LoginUI(viewModel = viewModel, onLoginSuccess = onLoginSuccess) {
+                isRegistering = true
+            }
+        }
+    }
+}
+
+@Composable
+fun LoginUI(
+    viewModel: AuthViewModel,
+    onLoginSuccess: (String) -> Unit,
+    onNavigateToRegister: () -> Unit
+) {
+    // State for the User ID and Password fields
+    var userId by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     val authState by viewModel.authState.collectAsState()
 
-    Surface(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = if (isRegistering) "Register" else "Login",
-                style = MaterialTheme.typography.headlineLarge
-            )
-            Spacer(modifier = Modifier.height(32.dp))
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
 
-            OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                label = { Text("Username") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Welcome Back",
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.Bold,
+            color = LightTextPrimary
+        )
+        Text(
+            text = "Welcome back! Login into your account!",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.Gray,
+            modifier = Modifier.padding(top = 4.dp, bottom = 32.dp)
+        )
 
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Password") },
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Show role field only during registration
-            if (isRegistering) {
-                OutlinedTextField(
-                    value = role,
-                    onValueChange = { role = it },
-                    label = { Text("Role (e.g., cashier, manager)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+        // User ID input field
+        OutlinedTextField(
+            value = userId,
+            onValueChange = { userId = it },
+            label = { Text("User ID") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            leadingIcon = {
+                Icon(
+                    painter = painterResource(id = R.drawable.mail_24px),
+                    contentDescription = "User ID Icon"
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // **FIXED**: Corrected `onValueValueChange` to `onValueChange`
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Password") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            leadingIcon = {
+                Icon(
+                    painter = painterResource(id = R.drawable.key_24px),
+                    contentDescription = "Password Icon"
+                )
+            },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+        )
+
+        // Forgot Password button
+        TextButton(
+            onClick = { /* TODO: Handle forgot password */ },
+            modifier = Modifier.align(Alignment.End)
+        ) {
+            Text("Forgot Password?",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = { viewModel.login(userId, password) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("Login", fontSize = 16.sp)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Navigation to Register screen
+        TextButton(onClick = onNavigateToRegister) {
+            Text("Don't have an account yet? Register here.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray)
+        }
+
+
+        // Handles UI updates for different authentication states
+        when (val state = authState) {
+            is AuthState.Loading -> CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
+            is AuthState.Error -> Text(
+                text = state.message,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 16.dp)
+            )
+            is AuthState.Success -> {
+                LaunchedEffect(state.role) {
+                    onLoginSuccess(state.role)
+                }
             }
+            else -> {}
+        }
+    }
+}
 
-            // Handle different UI states
-            when (val state = authState) {
-                is AuthState.Loading -> {
-                    CircularProgressIndicator()
-                }
-                is AuthState.Error -> {
-                    Text(text = state.message, color = MaterialTheme.colorScheme.error)
-                }
-                is AuthState.Success -> {
-                    // Trigger navigation upon successful login
-                    LaunchedEffect(state.role) {
-                        onLoginSuccess(state.role)
-                    }
-                }
-                else -> {} // Idle state
-            }
+@Composable
+fun RegisterUI(
+    viewModel: AuthViewModel,
+    onNavigateToLogin: () -> Unit
+) {
+    var userId by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var role by remember { mutableStateOf("Terminal") }
+    var expanded by remember { mutableStateOf(false) } // State to control dropdown
+    val roles = listOf("Terminal", "Admin")
+    val authState by viewModel.authState.collectAsState()
 
-            Spacer(modifier = Modifier.height(16.dp))
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // App Icon
+        Spacer(modifier = Modifier.height(24.dp))
 
-            // Main action button
-            Button(
-                onClick = {
-                    if (isRegistering) {
-                        viewModel.register(username, password, role)
-                    } else {
-                        viewModel.login(username, password)
-                    }
+        Text(
+            text = "Create Account Now",
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.Bold,
+            color = LightTextPrimary
+        )
+        Text(
+            text = "Create you POS Account Now!",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.Gray,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 4.dp, bottom = 32.dp)
+        )
+
+        // User ID input field
+        OutlinedTextField(
+            value = userId,
+            onValueChange = { userId = it },
+            label = { Text("User ID") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            leadingIcon = {
+                Icon(
+                    painter = painterResource(id = R.drawable.mail_24px),
+                    contentDescription = "User ID Icon"
+                )
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Password input field
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Password") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            leadingIcon = {
+                Icon(
+                    painter = painterResource(id = R.drawable.key_24px),
+                    contentDescription = "Password Icon"
+                )
+            },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Role dropdown
+        Box {
+            OutlinedTextField(
+                value = role,
+                onValueChange = {},
+                label = { Text("Role") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = true },
+                shape = RoundedCornerShape(12.dp),
+                readOnly = true,
+                leadingIcon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.person_24px),
+                        contentDescription = "Role Icon"
+                    )
                 },
-                modifier = Modifier.fillMaxWidth()
+                trailingIcon = {
+                    Icon(Icons.Default.ArrowDropDown, "Dropdown arrow", Modifier.clickable { expanded = true })
+                }
+            )
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.width(350.dp)
             ) {
-                Text(if (isRegistering) "Create Account" else "Login")
+                roles.forEach { selection ->
+                    DropdownMenuItem(
+                        text = { Text(selection,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.DarkGray) },
+                        onClick = {
+                            role = selection
+                            expanded = false
+                        }
+                    )
+                }
             }
+        }
 
-            // Toggle between Login and Register modes
-            TextButton(onClick = { isRegistering = !isRegistering }) {
-                Text(if (isRegistering) "Already have an account? Login" else "Don't have an account? Register")
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = { viewModel.register(userId, password, role.lowercase()) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("Sign Up", fontSize = 16.sp)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Navigation to Login screen
+        TextButton(onClick = onNavigateToLogin) {
+            Text("Already have an account? Sign In",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray)
+        }
+
+        // Handles UI updates for different registration states
+        when (val state = authState) {
+            is AuthState.Loading -> CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
+            is AuthState.Error -> Text(
+                text = state.message,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 16.dp)
+            )
+            is AuthState.Success -> {
+                // Navigate back to login on successful registration
+                LaunchedEffect(Unit) {
+                    onNavigateToLogin()
+                }
             }
+            else -> {}
         }
     }
 }

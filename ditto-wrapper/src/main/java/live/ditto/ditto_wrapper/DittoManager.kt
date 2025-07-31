@@ -5,6 +5,7 @@ import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import live.ditto.Ditto
+import live.ditto.DittoSmallPeerInfoSyncScope
 import live.ditto.DittoAuthenticator
 import live.ditto.DittoError
 import live.ditto.DittoIdentity
@@ -12,6 +13,7 @@ import live.ditto.DittoLogLevel
 import live.ditto.DittoLogger
 import live.ditto.android.DefaultAndroidDittoDependencies
 import live.ditto.DittoAuthenticationCallback
+
 class DittoManager(
     val context: Context,
     // We are going back to the simple online playground setup
@@ -61,7 +63,7 @@ class DittoManager(
 
             ditto = Ditto(androidDependencies, identity)
             ditto?.smallPeerInfo?.isEnabled = true
-
+            ditto?.disableSyncWithV3()
             ditto?.updateTransportConfig { config ->
                 // Set the Ditto Websocket URL
                 config.connect.websocketUrls.add(dittoWsUrl)
