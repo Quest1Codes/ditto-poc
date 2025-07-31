@@ -14,7 +14,6 @@ class TransactionRepository @Inject constructor(
 ) {
     companion object {
         const val TAG = "TransactionRepository"
-        // The query is now co-located with the repository that uses it.
         const val INSERT_TRANSACTION_QUERY = """
             INSERT INTO ${Transaction.COLLECTION_NAME}
             DOCUMENTS (:transaction)
@@ -23,7 +22,6 @@ class TransactionRepository @Inject constructor(
     }
 
     init {
-        // Start a subscription to sync all transaction data from the Ditto mesh.
         val subscriptionQuery = "SELECT * FROM ${Transaction.COLLECTION_NAME}"
         dittoRepository.startSubscription(subscriptionQuery)
     }
@@ -32,7 +30,6 @@ class TransactionRepository @Inject constructor(
      * Inserts or updates a Transaction in the database.
      */
     suspend fun saveTransaction(transaction: Transaction) {
-        // Convert the Transaction object into a Map that Ditto can store.
         val transactionMap = mapOf(
             "_id" to transaction.id,
             "orderId" to transaction.orderId,
@@ -73,7 +70,6 @@ class TransactionRepository @Inject constructor(
 
                     )
                 } catch (e: Exception) {
-                    // 3. Replace println with Log.e for better error logging
                     Log.e(TAG, "Error mapping order document: $docMap", e)
                     null
                 }

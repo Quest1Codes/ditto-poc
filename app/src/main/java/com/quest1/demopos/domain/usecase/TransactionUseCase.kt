@@ -25,7 +25,6 @@ class TransactionUseCase @Inject constructor(
     }
 
 
-    // --- Flow of StorePerformance aggregation ---
     fun getStorePerformance(): Flow<StorePerformance> {
         val todayUnixTime = getStartOfDayUnixTimestamp();
         return getTransactions()
@@ -47,12 +46,12 @@ class TransactionUseCase @Inject constructor(
 
                 StorePerformance(
                     totalTransactions = transactions.size,
-                    transactionGrowth = "+$transactionGrowth% from yesterday",  // TODO: implement real growth calc
+                    transactionGrowth = "+$transactionGrowth% from yesterday",
                     revenueToday = formatCurrency(
                         todayRevenue,
                         todayTransactions.firstOrNull()?.currency ?: "USD"
                     ),
-                    revenueGrowth = "+$revenueGrowth% from yesterday"        // TODO: implement real growth calc
+                    revenueGrowth = "+$revenueGrowth% from yesterday"
                 )
             }
     }

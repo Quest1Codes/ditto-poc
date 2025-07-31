@@ -16,7 +16,7 @@ object AppRoutes {
     const val AUTH = "auth"
     const val SHOP = "shop"
     const val CART = "cart"
-    const val PAYMENT_GATEWAY = "payment_gateway" // New Route
+    const val PAYMENT_GATEWAY = "payment_gateway"
     const val PAYMENT = "payment"
 
     // NEW
@@ -33,13 +33,11 @@ object AppRoutes {
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    // The ShopViewModel is shared between the Shop and Cart screens
     val shopViewModel: ShopViewModel = hiltViewModel()
 
     val authViewModel: AuthViewModel = hiltViewModel()
     val authState by authViewModel.authState.collectAsState()
 
-    // This will re-evaluate whenever authState changes
     val startDestination = remember(authState) {
         if (authState is AuthState.Success) {
             AppRoutes.SHOP
@@ -64,7 +62,7 @@ fun AppNavigation() {
             ShopScreen(
                 viewModel = shopViewModel,
                 onNavigateToCart = { navController.navigate(AppRoutes.CART) },
-                navController = navController // This line was missing
+                navController = navController
             )
         }
         composable(AppRoutes.CART) {
@@ -75,7 +73,6 @@ fun AppNavigation() {
                     navController.popBackStack()
                 },
                 onProceedToPayment = {
-                    // Navigate to the new Payment Gateway Screen
                     val totalAmount = uiState.cartTotal
                     val orderId = uiState.activeOrderId
                     if (orderId != null) {
@@ -85,7 +82,6 @@ fun AppNavigation() {
             )
         }
 
-        // New composable for the Payment Gateway screen
         composable(
             route = "${AppRoutes.PAYMENT_GATEWAY}/{totalAmount}/{orderId}",
             arguments = listOf(
@@ -96,7 +92,6 @@ fun AppNavigation() {
             PaymentGatewayScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onPayNowClicked = {
-                    // After clicking Pay Now, navigate to the final processing screen
                     navController.navigate(AppRoutes.PAYMENT)
                 }
             )
@@ -105,7 +100,7 @@ fun AppNavigation() {
         composable(AppRoutes.PAYMENT) {
             val paymentViewModel: PaymentViewModel = hiltViewModel()
             PaymentScreen(
-                shopViewModel = shopViewModel, // Pass the ShopViewModel instance
+                shopViewModel = shopViewModel,
                 viewModel = paymentViewModel,
                 onNavigateBack = {
                     paymentViewModel.reset()
