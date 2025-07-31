@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.combine
 import android.util.Log
 import com.quest1.demopos.data.repository.SessionManager
 import androidx.core.content.edit
-import com.auth0.jwt.JWT
+import com.auth0.android.jwt.JWT
 import java.util.Base64
 import java.util.Date
 import com.quest1.demopos.domain.usecase.SaveTerminalUseCase
@@ -72,8 +72,8 @@ class AuthViewModel @Inject constructor(
 
     fun isTokenValid(jwtToken: String): Boolean {
         try {
-            val claims = JWT.decode(jwtToken)
-            return claims.expiresAt.after(Date()) ?: false
+            val claims = JWT(jwtToken)
+            return claims.expiresAt?.after(Date()) ?: false
         } catch (e: Exception) {
             e.message?.let { Log.e("AuthViewModel", it) }
             return false
