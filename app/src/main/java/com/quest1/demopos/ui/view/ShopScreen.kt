@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShoppingCart
@@ -36,6 +37,7 @@ import com.quest1.demopos.ui.components.TerminalId
 fun ShopScreen(
     viewModel: ShopViewModel = hiltViewModel(),
     topBarViewModel: ShopTopBarViewModel = hiltViewModel(),
+    authViewModel: AuthViewModel = hiltViewModel(),
     onNavigateToCart: () -> Unit,
     navController: NavController
 ) {
@@ -100,6 +102,20 @@ fun ShopScreen(
                             onClick = {
                                 expanded = false
                                 navController.navigate(AppRoutes.PRESENCE_VIEWER)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Logout", style = MaterialTheme.typography.bodySmall, color = Color.Black) },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Outlined.Clear,
+                                    contentDescription = "Presence Icon"
+                                )
+                            },
+                            onClick = {
+                                expanded = false
+                                authViewModel.logout()
+                                navController.navigate(AppRoutes.AUTH)
                             }
                         )
                     }
