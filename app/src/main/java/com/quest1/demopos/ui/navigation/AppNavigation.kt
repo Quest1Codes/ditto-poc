@@ -58,7 +58,7 @@ fun AppNavigation() {
                 onProceedToPayment = {
                     // Navigate to the new Payment Gateway Screen
                     val totalAmount = uiState.cartTotal
-                    val orderId = uiState.activeOrderId // Generate a random order number
+                    val orderId = uiState.activeOrderId
                     if (orderId != null) {
                         navController.navigate("${AppRoutes.PAYMENT_GATEWAY}/$totalAmount/$orderId")
                     }
