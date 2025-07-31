@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import live.ditto.ditto_wrapper.DittoManager
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,7 +26,7 @@ class CoreRepository @Inject constructor(
     private val sessionManager: SessionManager
 ) {
 
-    suspend fun upsertTerminal(terminal: Terminal) {
+    suspend fun saveTerminal(terminal: Terminal) {
         try {
             val ditto = dittoManager.requireDitto()
             val queryString = "INSERT INTO ${Terminal.COLLECTION_NAME} DOCUMENTS (:terminal) ON ID CONFLICT DO UPDATE"
