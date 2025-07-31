@@ -58,18 +58,20 @@ fun AppNavigation() {
                 onProceedToPayment = {
                     // Navigate to the new Payment Gateway Screen
                     val totalAmount = uiState.cartTotal
-                    val orderNumber = (1000000..9999999).random() // Generate a random order number
-                    navController.navigate("${AppRoutes.PAYMENT_GATEWAY}/$totalAmount/$orderNumber")
+                    val orderId = uiState.activeOrderId // Generate a random order number
+                    if (orderId != null) {
+                        navController.navigate("${AppRoutes.PAYMENT_GATEWAY}/$totalAmount/$orderId")
+                    }
                 }
             )
         }
 
         // New composable for the Payment Gateway screen
         composable(
-            route = "${AppRoutes.PAYMENT_GATEWAY}/{totalAmount}/{orderNumber}",
+            route = "${AppRoutes.PAYMENT_GATEWAY}/{totalAmount}/{orderId}",
             arguments = listOf(
                 navArgument("totalAmount") { type = NavType.StringType },
-                navArgument("orderNumber") { type = NavType.StringType }
+                navArgument("orderId") { type = NavType.StringType }
             )
         ) {
             PaymentGatewayScreen(

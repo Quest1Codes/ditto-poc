@@ -34,7 +34,8 @@ data class ShopUiState(
     val cartItemCount: Int = 0,
     val cartTotal: Double = 0.0,
     val isLoading: Boolean = true,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val activeOrderId: String? = null
 ) {
     val itemsInCart: List<ShopItemState>
         get() = items.filter { it.quantityInCart > 0 }
@@ -101,7 +102,8 @@ class ShopViewModel @Inject constructor(
                     items = shopItems,
                     isLoading = false,
                     cartTotal = total,
-                    cartItemCount = count
+                    cartItemCount = count,
+                    activeOrderId = activeOrder?.id
                 )
             }
                 .catch { e -> Log.e("ShopViewModel", "Error combining flows", e)
