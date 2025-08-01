@@ -7,13 +7,11 @@ import java.util.UUID
  * This structured data is stored on the edge device to inform the MAB algorithm.
  */
 data class GatewayPerformanceMetrics(
-    // A unique ID for this metric entry
-    val id: String = UUID.randomUUID().toString(),
+    val id: String = UUID.randomUUID().toString().substring(0, 8),
     val transactionId: String,
     val gatewayId: String,
     val terminalId: String,
     val timestamp: Long,
-    // A flexible map for extra data, e.g., "latencyMs" to 1234L
     val metrics: Map<String, Any>,
     val wasSuccess: Boolean,
     val failureCode: String?

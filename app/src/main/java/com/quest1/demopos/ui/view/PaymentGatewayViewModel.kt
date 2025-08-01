@@ -15,7 +15,7 @@ import javax.inject.Inject
 data class PaymentGatewayUiState(
     val totalAmount: Double = 0.0,
 
-    val cardHolderName: String = "Noah Oliver",
+    val cardHolderName: String = "John Doe",
     val cardLastFour: String = "4671",
     val cardBrand: String = "Mastercard",
     val lastUsedDate: String = "Fri, Jun 15 2021",

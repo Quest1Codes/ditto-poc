@@ -22,11 +22,9 @@ class ProcessPaymentUseCase @Inject constructor(
     private val performanceData: GatewayPerformanceData
 ) {
     suspend fun execute(): Result<PaymentResponse> {
-        // 1. Get the active order (the cart). This must be done first.
         val activeOrder = orderRepository.observeActiveOrder().first()
             ?: return Result.failure(Exception("No active order to process."))
 
-        // 2. Select the gateway using the MAB selector.
         val selectedAcquirer = mabGatewaySelector.selectGateway()
         val startTime = System.currentTimeMillis()
 
@@ -34,15 +32,13 @@ class ProcessPaymentUseCase @Inject constructor(
         var exception: Exception? = null
 
         try {
-            // 3. Process the payment
             val paymentRequest = PaymentRequest(
-                orderId = activeOrder.id, // Use the temporary ID for the request
+                orderId = activeOrder.id,
                 amount = activeOrder.totalAmount,
                 currency = activeOrder.currency
             )
             paymentResponse = paymentRepository.processPayment(selectedAcquirer, paymentRequest)
 
-            // 4. If payment is successful, convert the cart to a permanent order
             if (paymentResponse.status == "SUCCESS") {
                 val permanentOrderId = UUID.randomUUID().toString()
 
@@ -54,7 +50,7 @@ class ProcessPaymentUseCase @Inject constructor(
 
                 val transaction = Transaction(
                     id = paymentResponse.transactionId,
-                    orderId = permanentOrderId, // <-- CORRECT: Using the new permanent ID
+                    orderId = permanentOrderId,
                     acquirerId = paymentResponse.acquirerId,
                     acquirerName = paymentResponse.acquirerName,
                     status = paymentResponse.status,
@@ -66,19 +62,17 @@ class ProcessPaymentUseCase @Inject constructor(
                 )
                 transactionRepository.saveTransaction(transaction)
 
-                orderRepository.deleteOrder(activeOrder.id) // Delete the old "PENDING" cart
+                orderRepository.deleteOrder(activeOrder.id)
                 return Result.success(paymentResponse)
             } else {
-                // Handle payment failure reported by the gateway
                 throw Exception(paymentResponse.failureReason ?: "Payment failed for an unknown reason.")
             }
         } catch (e: Exception) {
             exception = e
             Log.e("ProcessPaymentUseCase", "Payment processing failed with an exception", e)
-            // Create a transaction record for the failure
             val failedTransaction = Transaction(
-                id = "txn_exc_${UUID.randomUUID()}",
-                orderId = activeOrder.id, // The ID of the cart that failed
+                id = "txn_fail_${UUID.randomUUID().toString().substring(0, 8)}",
+                orderId = activeOrder.id,
                 acquirerId = selectedAcquirer.id,
                 acquirerName = selectedAcquirer.name,
                 status = "FAILED",
@@ -91,7 +85,6 @@ class ProcessPaymentUseCase @Inject constructor(
             transactionRepository.saveTransaction(failedTransaction)
             return Result.failure(e)
         } finally {
-            // This block will execute whether the payment succeeded or failed.
             val wasSuccess = paymentResponse?.status == "SUCCESS" && exception == null
             val latency = System.currentTimeMillis() - startTime
 
@@ -101,7 +94,7 @@ class ProcessPaymentUseCase @Inject constructor(
             val successRate = if (totalAttempts > 0) totalSuccesses.toDouble() / totalAttempts.toDouble() else 0.0
 
             val metric = GatewayPerformanceMetrics(
-                transactionId = paymentResponse?.transactionId ?: "txn_exc_${UUID.randomUUID()}",
+                transactionId = paymentResponse?.transactionId ?: "txn_fail_${UUID.randomUUID().toString().substring(0, 8)}",
                 gatewayId = selectedAcquirer.id,
                 terminalId = activeOrder.terminalId,
                 timestamp = System.currentTimeMillis(),
