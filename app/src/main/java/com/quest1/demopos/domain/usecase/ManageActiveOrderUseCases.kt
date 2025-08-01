@@ -5,7 +5,9 @@ import com.quest1.demopos.data.model.orders.Order
 import com.quest1.demopos.data.model.orders.OrderItem
 import com.quest1.demopos.data.repository.InventoryRepository
 import com.quest1.demopos.data.repository.OrderRepository
+import com.quest1.demopos.data.repository.SessionManager
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import java.util.UUID
 import javax.inject.Inject
@@ -28,68 +30,87 @@ class GetActiveOrderUseCase @Inject constructor(
  */
 class UpdateOrderItemQuantityUseCase @Inject constructor(
     private val orderRepository: OrderRepository,
-    private val inventoryRepository: InventoryRepository // Needed to get item details
+    private val inventoryRepository: InventoryRepository,
+    private val sessionManager: SessionManager // Injected to get the current terminal ID
 ) {
     suspend fun execute(itemId: String, change: Int) {
-        // 1. Get the current active order, or determine if a new one is needed.
-        var activeOrder = orderRepository.observeActiveOrder().firstOrNull()
-        val isNewOrder = activeOrder == null
+        // Get the current terminal ID from the session. Fail if no user is logged in.
+        val terminalId = sessionManager.currentUserId.first()
+            ?: throw IllegalStateException("User is not logged in, cannot modify order.")
 
-        if (isNewOrder) {
-            val newOrderId = UUID.randomUUID().toString()
-            activeOrder = Order(
-                id = newOrderId,
-                terminalId = "term_A1", // Example value
-                storeId = "store_01",   // Example value
-                status = Order.STATUS_PENDING,
-                totalAmount = 0.0,
-                createdAt = Date(System.currentTimeMillis()),
-                currency = "USD",
-                items = emptyList()
-            )
+        // Get the active order for THIS terminal.
+        val activeOrder = orderRepository.observeActiveOrder().first()
+
+        // Get the item details from inventory.
+        val inventoryItem = inventoryRepository.getAvailableItems().first()
+            .find { it.id == itemId }
+            ?: return // Cannot proceed if the item doesn't exist.
+
+        // Determine the updated order, either by creating a new one or modifying the existing one.
+        val updatedOrder = if (activeOrder == null) {
+            // If no active order exists for this terminal, create a new one.
+            createNewOrder(terminalId, inventoryItem, change)
+        } else {
+            // If an order already exists, update its items.
+            updateExistingOrder(activeOrder, inventoryItem, change)
         }
 
-        // 2. Find the inventory item to get its price and name.
-        // FIXED: Use firstOrNull with predicate directly on the items list
-        val availableItems = inventoryRepository.getAvailableItems().firstOrNull()
-        val inventoryItem = availableItems?.firstOrNull { it.id == itemId }
-            ?: return // Cannot proceed if the item doesn't exist in inventory
+        // If the updated order has items, save it. Otherwise, if it's empty, we might want to delete it.
+        // For simplicity, we'll save it. An empty order will just be overwritten next time.
+        if (updatedOrder != null) {
+            orderRepository.saveOrder(updatedOrder)
+        }
+    }
 
-        // 3. Update the items list within the order.
-        val existingOrderItem = activeOrder!!.items.find { it.itemId == itemId }
-        val currentQuantity = existingOrderItem?.quantity ?: 0
-        val newQuantity = (currentQuantity + change).coerceAtLeast(0)
+    private fun createNewOrder(terminalId: String, item: Item, quantityChange: Int): Order? {
+        // Don't create a new order if the first action is to decrease quantity.
+        if (quantityChange <= 0) return null
 
-        val updatedItems = activeOrder.items.toMutableList()
+        val newOrderItem = OrderItem(
+            itemId = item.id,
+            name = item.name,
+            quantity = quantityChange,
+            cost = item.price.toInt() // Assuming price can be safely converted to Int
+        )
 
-        if (newQuantity == 0) {
-            // Remove the item from the order
-            updatedItems.removeAll { it.itemId == itemId }
-        } else {
-            if (existingOrderItem != null) {
-                // Update quantity of existing item
-                val itemIndex = updatedItems.indexOf(existingOrderItem)
-                updatedItems[itemIndex] = existingOrderItem.copy(quantity = newQuantity)
+        return Order(
+            id = terminalId, // CRITICAL CHANGE: Use terminalId as the unique document _id
+            terminalId = terminalId,
+            storeId = "store_01",   // TODO: Replace with actual store ID from session or config
+            status = Order.STATUS_PENDING,
+            totalAmount = newOrderItem.cost * newOrderItem.quantity.toDouble(),
+            createdAt = Date(),
+            currency = "USD",
+            items = listOf(newOrderItem)
+        )
+    }
+
+    private fun updateExistingOrder(order: Order, item: Item, quantityChange: Int): Order {
+        val existingItems = order.items.toMutableList()
+        val itemIndex = existingItems.indexOfFirst { it.itemId == item.id }
+
+        if (itemIndex != -1) {
+            // Item exists in the cart, update its quantity
+            val existingItem = existingItems[itemIndex]
+            val newQuantity = existingItem.quantity + quantityChange
+
+            if (newQuantity > 0) {
+                existingItems[itemIndex] = existingItem.copy(quantity = newQuantity)
             } else {
-                // Add new item to the order
-                updatedItems.add(OrderItem(
-                    itemId = inventoryItem.id,
-                    name = inventoryItem.name,
-                    quantity = newQuantity,
-                    cost = inventoryItem.price.toInt() // Assuming price can be converted
-                ))
+                existingItems.removeAt(itemIndex) // Remove if quantity drops to 0 or less
             }
+        } else if (quantityChange > 0) {
+            // Item is not in the cart, add it
+            existingItems.add(OrderItem(
+                itemId = item.id,
+                name = item.name,
+                quantity = quantityChange,
+                cost = item.price.toInt()
+            ))
         }
 
-        // 4. Recalculate the total amount.
-        val newTotal = updatedItems.sumOf { (it.cost.toDouble()) * it.quantity }
-
-        // 5. Save or Update the order back into the database based on whether it was new.
-        val finalOrder = activeOrder.copy(items = updatedItems, totalAmount = newTotal)
-        if (isNewOrder) {
-            orderRepository.saveOrder(finalOrder)
-        } else {
-            orderRepository.updateOrder(finalOrder)
-        }
+        // Recalculate the total amount and return the updated order
+        val newTotal = existingItems.sumOf { it.cost.toDouble() * it.quantity }
+        return order.copy(items = existingItems, totalAmount = newTotal)
     }
 }

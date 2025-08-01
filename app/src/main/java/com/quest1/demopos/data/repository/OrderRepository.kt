@@ -5,6 +5,8 @@ import android.util.Log // 1. Add Log import
 import com.quest1.demopos.data.model.orders.Order
 import com.quest1.demopos.data.model.orders.OrderItem
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import java.util.Date
 import javax.inject.Inject
@@ -12,7 +14,8 @@ import javax.inject.Singleton
 
 @Singleton
 class OrderRepository @Inject constructor(
-    private val dittoRepository: DittoRepository
+    private val dittoRepository: DittoRepository,
+    private val sessionManager: SessionManager
 ) {
     // 2. Define a TAG for logging
     private val TAG = "OrderRepository"
@@ -28,35 +31,43 @@ class OrderRepository @Inject constructor(
      * It returns a Flow that emits the single pending order or null if none exists.
      */
     fun observeActiveOrder(): Flow<Order?> {
-        val query = "SELECT * FROM ${Order.COLLECTION_NAME} WHERE status = :status LIMIT 1"
-        val arguments = mapOf("status" to Order.STATUS_PENDING)
+        // This flow will re-trigger when the user logs in and the terminalId becomes available.
+        return sessionManager.currentUserId.flatMapLatest { terminalId ->
+            if (terminalId == null) {
+                flowOf(null) // If no user is logged in, there's no active order.
+            } else {
+                // The query now looks for an order where the _id matches the current terminal's ID.
+                val query = "SELECT * FROM ${Order.COLLECTION_NAME} WHERE _id = :terminalId"
+                val arguments = mapOf("terminalId" to terminalId)
 
-        return dittoRepository.observeCollection(query, arguments).map { documents ->
-            documents.firstOrNull()?.let { docMap ->
-                try {
-                    // Manually map the document map to an Order object
-                    val itemsList = (docMap["items"] as? List<Map<String, Any?>> ?: emptyList()).mapNotNull { itemMap ->
-                        OrderItem(
-                            itemId = itemMap["itemId"] as String,
-                            name = itemMap["name"] as String,
-                            quantity = (itemMap["quantity"] as Number).toInt(),
-                            cost = (itemMap["cost"] as Number).toInt()
-                        )
+                dittoRepository.observeCollection(query, arguments).map { documents ->
+                    documents.firstOrNull()?.let { docMap ->
+                        try {
+                            // Mapping logic remains the same
+                            val itemsList = (docMap["items"] as? List<Map<String, Any?>>
+                                ?: emptyList()).mapNotNull { itemMap ->
+                                OrderItem(
+                                    itemId = itemMap["itemId"] as String,
+                                    name = itemMap["name"] as String,
+                                    quantity = (itemMap["quantity"] as Number).toInt(),
+                                    cost = (itemMap["cost"] as Number).toInt()
+                                )
+                            }
+                            Order(
+                                id = docMap["_id"].toString(),
+                                terminalId = docMap["terminalId"] as String,
+                                storeId = docMap["storeId"] as String,
+                                status = docMap["status"] as String,
+                                totalAmount = (docMap["totalAmount"] as Number).toDouble(),
+                                createdAt = Date((docMap["createdAt"] as Number).toLong()),
+                                currency = docMap["currency"] as String,
+                                items = itemsList
+                            )
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error mapping order document: $docMap", e)
+                            null // Return null if mapping fails
+                        }
                     }
-                    Order(
-                        id = docMap["_id"].toString(),
-                        terminalId = docMap["terminalId"] as String,
-                        storeId = docMap["storeId"] as String,
-                        status = docMap["status"] as String,
-                        totalAmount = (docMap["totalAmount"] as Number).toDouble(),
-                        createdAt = Date((docMap["createdAt"] as Number).toLong()),
-                        currency = docMap["currency"] as String,
-                        items = itemsList
-                    )
-                } catch (e: Exception) {
-                    // 3. Replace println with Log.e for better error logging
-                    Log.e(TAG, "Error mapping order document: $docMap", e)
-                    throw e
                 }
             }
         }
