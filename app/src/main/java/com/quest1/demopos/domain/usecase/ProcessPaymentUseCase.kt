@@ -81,31 +81,33 @@ class ProcessPaymentUseCase @Inject constructor(
             val wasSuccess = paymentResponse?.status == "SUCCESS" && exception == null
             val latency = System.currentTimeMillis() - startTime
 
+            // **ADDED**: Calculate current success rate before adding the new metric
+            val gatewayStats = performanceData.metrics.filter { it.gatewayId == selectedAcquirer.id }
+            val totalAttempts = gatewayStats.size
+            val totalSuccesses = gatewayStats.count { it.wasSuccess }
+            val successRate = if (totalAttempts > 0) totalSuccesses.toDouble() / totalAttempts.toDouble() else 0.0
+
             val metric = GatewayPerformanceMetrics(
                 transactionId = paymentResponse?.transactionId ?: "txn_exc_${UUID.randomUUID()}",
                 gatewayId = selectedAcquirer.id,
-                terminalId = activeOrder.terminalId, // <-- ADDED
+                terminalId = activeOrder.terminalId,
                 timestamp = System.currentTimeMillis(),
-                metrics = mapOf("latencyMs" to latency),
+                // **MODIFIED**: Added successRate to the metrics map
+                metrics = mapOf(
+                    "latencyMs" to latency,
+                    "successRate" to "%.2f".format(successRate)
+                ),
                 wasSuccess = wasSuccess,
                 failureCode = paymentResponse?.failureReason ?: exception?.message
             )
             performanceData.metrics.add(metric)
 
-            // Log the newly added metric for debugging
             Log.d("MAB_METRIC_ADDED", "New Metric: $metric")
-
-            // Calculate and log the updated performance stats for the selected gateway
-            val gatewayStats = performanceData.metrics.filter { it.gatewayId == selectedAcquirer.id }
-            val totalAttempts = gatewayStats.size
-            val totalSuccesses = gatewayStats.count { it.wasSuccess }
-
             Log.d(
                 "MAB_PERFORMANCE_UPDATE",
                 "Gateway: ${selectedAcquirer.name} (ID: ${selectedAcquirer.id}), " +
-                        "Attempts: $totalAttempts, " +
-                        "Successes: $totalSuccesses, " +
-                        "Success Rate: ${if (totalAttempts > 0) "%.2f".format(totalSuccesses.toDouble() / totalAttempts.toDouble()) else "N/A"}"
+                        "Attempts: ${totalAttempts + 1}, " +
+                        "Successes: ${totalSuccesses + if(wasSuccess) 1 else 0}"
             )
         }
     }
