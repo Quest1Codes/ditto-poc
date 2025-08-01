@@ -112,4 +112,10 @@ class OrderRepository @Inject constructor(
             "items" to orderItemsAsMaps
         )
     }
+
+    suspend fun deleteOrder(orderId: String) {
+        val query = "DELETE FROM ${Order.COLLECTION_NAME} WHERE _id = :orderId"
+        val arguments = mapOf("orderId" to orderId)
+        dittoRepository.executeQuery(query, arguments)
+    }
 }

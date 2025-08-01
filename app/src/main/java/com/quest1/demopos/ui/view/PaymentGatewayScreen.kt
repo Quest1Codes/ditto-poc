@@ -1,5 +1,6 @@
 package com.quest1.demopos.ui.view
 
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -45,6 +46,19 @@ private fun formatCurrency(amount: Double, isDiscount: Boolean = false): String 
     return if (isDiscount) "-$formatted" else formatted
 }
 
+// NEW: Helper function to select the correct logo based on the processor name
+@DrawableRes
+private fun getLogoForProcessor(processorName: String): Int {
+    return when (processorName.lowercase(Locale.ROOT)) {
+        "stripe" -> R.drawable.stripe_logo
+        // Add cases for other processors as you add their logos
+         "paypal" -> R.drawable.paypal_logo
+         "adyen" -> R.drawable.adyen_logo
+        else -> R.drawable.credit_card_24px // Default/fallback icon
+    }
+}
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PaymentGatewayScreen(
@@ -62,18 +76,18 @@ fun PaymentGatewayScreen(
                     .statusBarsPadding()
                     .padding(top = 8.dp, start = 12.dp, end = 16.dp),
             ) {
-                // Modified this Row to center its content
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(64.dp)
                         .clip(CircleShape),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center // This centers the logo
+                    horizontalArrangement = Arrangement.Center
                 ) {
+                    // MODIFIED: Image is now dynamically selected
                     Image(
-                        painter = painterResource(id = R.drawable.stripe_logo),
-                        contentDescription = "Stripe Logo",
+                        painter = painterResource(id = getLogoForProcessor(uiState.processor)),
+                        contentDescription = "${uiState.processor} Logo",
                         modifier = Modifier.height(48.dp)
                     )
                 }
@@ -114,6 +128,7 @@ fun PaymentGatewayScreen(
     }
 }
 
+// ... (Rest of the composables like TotalOrderHeader, CreditCardLayout, etc. remain unchanged)
 @Composable
 private fun TotalOrderHeader(totalAmount: Double) {
     Column(

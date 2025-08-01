@@ -67,7 +67,7 @@ fun LoginUI(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "QuestMart",
+            text = "Quest1 POS",
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
             color = LightTextPrimary

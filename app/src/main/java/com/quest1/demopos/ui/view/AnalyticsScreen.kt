@@ -1,10 +1,8 @@
 package com.quest1.demopos.ui.view
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -16,8 +14,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -67,14 +65,15 @@ fun AnalyticsScreen(
             contentPadding = PaddingValues(vertical = 16.dp)
         ) {
 
-            /* 1 ▸  “My Shop” header row moved from app-bar */
             item { StoreHeader() }
 
             item {
                 Divider()
             }
 
-            /* 2 ▸  Performance cards + recent transactions */
+            item { LiveGatewayRankingsSection(acquirers = uiState.acquirers) }
+
+
             item {
                 StorePerformanceSection(
                     performance = uiState.storePerformance,
@@ -82,8 +81,6 @@ fun AnalyticsScreen(
                 )
             }
 
-            /* 3 ▸  Live acquirer rankings */
-            item { LiveAcquirerRankingsSection(acquirers = uiState.acquirers) }
         }
     }
 }
@@ -271,10 +268,10 @@ fun TransactionItem(transaction: Transaction) {
 }
 
 @Composable
-fun LiveAcquirerRankingsSection(acquirers: List<Acquirer>) {
+fun LiveGatewayRankingsSection(acquirers: List<Acquirer>) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text(
-            "Live Acquirer Rankings",
+            "Gateway Rankings",
             style = MaterialTheme.typography.headlineSmall
         )
 
@@ -328,32 +325,27 @@ fun AcquirerRankingCard(acquirer: Acquirer) {
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium
                     )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .background(
-                                    getStatusColor(acquirer.status),
-                                    CircleShape
-                                )
-                        )
-                        Text(
-                            acquirer.status.replaceFirstChar { it.uppercase() },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                        )
-                    }
+                    // The old Row with Box and Text for status is replaced by this Icon
                 }
             }
 
             Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    "Avg. Latency: ${acquirer.latency}",
-                    style = MaterialTheme.typography.bodySmall
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds a small space
+                ) {
+                    Text(
+                        "Avg. Latency: ${acquirer.latency}",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Icon(
+                        painter = painterResource(id = acquirer.statusInfo.iconRes),
+                        contentDescription = "Gateway Status",
+                        tint = acquirer.statusInfo.color,
+                        modifier = Modifier.size(16.dp) // Adjusted size to better match text
+                    )
+                }
+
                 Text(
                     "Success Rate: ${acquirer.successRate}",
                     style = MaterialTheme.typography.bodySmall
@@ -363,12 +355,3 @@ fun AcquirerRankingCard(acquirer: Acquirer) {
     }
 }
 
-@Composable
-fun getStatusColor(status: String): Color {
-    return when (status) {
-        "healthy" -> Success
-        "degraded" -> Warning
-        "failing" -> Error
-        else -> Color.Gray
-    }
-}

@@ -25,7 +25,7 @@ val stubGateways = listOf(
         supportedPaymentMethod = "card"
     ),
     Gateway(
-        id = "adyen34",
+        id = "adyen_34",
         name = "Adyen",
         apiEndpoint = "",
         supportedPaymentMethod = "card"
