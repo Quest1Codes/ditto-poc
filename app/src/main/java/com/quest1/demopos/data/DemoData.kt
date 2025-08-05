@@ -13,19 +13,19 @@ import java.util.UUID
  */
 val stubGateways = listOf(
     Gateway(
-        id = "stripe_21",
+        id = "stripe",
         name = "Stripe",
         apiEndpoint = "",
         supportedPaymentMethod = "card"
     ),
     Gateway(
-        id = "paypal_45",
+        id = "paypal",
         name = "PayPal",
         apiEndpoint = "",
         supportedPaymentMethod = "card"
     ),
     Gateway(
-        id = "adyen_34",
+        id = "adyen",
         name = "Adyen",
         apiEndpoint = "",
         supportedPaymentMethod = "card"

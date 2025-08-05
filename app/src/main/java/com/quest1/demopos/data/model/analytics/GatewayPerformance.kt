@@ -1,7 +1,7 @@
+// File: app/src/main/java/com/quest1/demopos/data/model/analytics/GatewayPerformance.kt
 package com.quest1.demopos.data.model.analytics
 
 import live.ditto.ditto_wrapper.DittoProperty
-import live.ditto.ditto_wrapper.deserializeProperty
 
 /**
  * Represents the performance metrics for a single payment gateway.
@@ -18,14 +18,18 @@ data class GatewayPerformance(
     companion object {
         const val COLLECTION_NAME = "gateway_performance"
 
+        /**
+         * MODIFIED: This function now safely handles null or missing properties
+         * by providing default values, preventing the app from crashing.
+         */
         fun fromDittoDocument(doc: DittoProperty): GatewayPerformance {
             return GatewayPerformance(
-                _id = doc.deserializeProperty("_id"),
-                gatewayId = doc.deserializeProperty("gatewayId"),
-                gatewayName = doc.deserializeProperty("gatewayName"),
-                totalAttempts = (doc.deserializeProperty<Any>("totalAttempts") as Number).toLong(),
-                totalSuccesses = (doc.deserializeProperty<Any>("totalSuccesses") as Number).toLong(),
-                successRate = (doc.deserializeProperty<Any>("successRate") as Number).toDouble()
+                _id = doc["_id"] as? String ?: "unknown_id",
+                gatewayId = doc["gatewayId"] as? String ?: "",
+                gatewayName = doc["gatewayName"] as? String ?: "Unknown Gateway",
+                totalAttempts = (doc["totalAttempts"] as? Number)?.toLong() ?: 0L,
+                totalSuccesses = (doc["totalSuccesses"] as? Number)?.toLong() ?: 0L,
+                successRate = (doc["successRate"] as? Number)?.toDouble() ?: 0.0
             )
         }
     }

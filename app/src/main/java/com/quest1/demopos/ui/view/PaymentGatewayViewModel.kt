@@ -1,3 +1,4 @@
+// File: app/src/main/java/com/quest1/demopos/ui/view/PaymentGatewayViewModel.kt
 package com.quest1.demopos.ui.view
 
 import androidx.compose.runtime.State
@@ -18,49 +19,48 @@ data class PaymentGatewayUiState(
     val cardHolderName: String = "John Doe",
     val cardLastFour: String = "4671",
     val cardBrand: String = "Mastercard",
-    val lastUsedDate: String = "Fri, Jun 15 2021",
+    val lastUsedDate: String = "Fri, Jun 17 2025",
     val isCardSelected: Boolean = true,
-
     val orderItems: List<OrderItem> = emptyList(),
     val itemTotal: Double = 0.0,
     val taxes: Double = 0.0,
     val tax_percentage: Double = 0.075,
-    val processor: String = "stripe"
+    val processor: String = "stripe",
+    val isLoadingGateway: Boolean = true
 )
 
 @HiltViewModel
 class PaymentGatewayViewModel @Inject constructor(
     private val getActiveOrderUseCase: GetActiveOrderUseCase,
-    private val getOptimalGatewayUseCase: GetOptimalGatewayUseCase // Inject the new use case
+    private val getOptimalGatewayUseCase: GetOptimalGatewayUseCase
 ) : ViewModel() {
-
     private val _uiState = mutableStateOf(PaymentGatewayUiState())
     val uiState: State<PaymentGatewayUiState> = _uiState
 
     init {
         viewModelScope.launch {
-            // Fetch the active order to get the itemized list
-            val activeOrder = getActiveOrderUseCase.execute().firstOrNull()
+            _uiState.value = _uiState.value.copy(isLoadingGateway = true)
 
-            // Fetch the best performing payment gateway
+            val activeOrder = getActiveOrderUseCase.execute().firstOrNull()
             val optimalProcessor = getOptimalGatewayUseCase.execute()
 
             activeOrder?.let { order ->
-                // Calculate the subtotal from the items in the order
                 val itemsSubtotal = order.items.sumOf { (it.cost.toDouble()) * it.quantity }
-                val taxes = itemsSubtotal * uiState.value.tax_percentage
+                val taxes = itemsSubtotal * _uiState.value.tax_percentage
                 val total = itemsSubtotal + taxes
-
                 _uiState.value = _uiState.value.copy(
                     orderItems = order.items,
                     itemTotal = itemsSubtotal,
                     taxes = taxes,
                     totalAmount = total,
-                    processor = optimalProcessor // Set the processor dynamically
+                    processor = optimalProcessor,
+                    isLoadingGateway = false
                 )
             } ?: run {
-                // Handle case where there's no active order but we still need to set the processor
-                _uiState.value = _uiState.value.copy(processor = optimalProcessor)
+                _uiState.value = _uiState.value.copy(
+                    processor = optimalProcessor,
+                    isLoadingGateway = false
+                )
             }
         }
     }

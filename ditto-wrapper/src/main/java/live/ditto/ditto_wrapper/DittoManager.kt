@@ -68,6 +68,7 @@ class DittoManager(
             ditto?.updateTransportConfig { config ->
                 // Set the Ditto Websocket URL
                 config.connect.websocketUrls.add(dittoWsUrl)
+                config.enableAllPeerToPeer()
             }
 
 

@@ -1,5 +1,8 @@
+// File: app/src/main/java/com/quest1/demopos/ui/view/PaymentDashboardScreen.kt
 package com.quest1.demopos.ui.view
 
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -14,17 +17,41 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.quest1.demopos.R
 import com.quest1.demopos.data.model.orders.Transaction
-import com.quest1.demopos.ui.theme.Success
 import com.quest1.demopos.ui.theme.Error
+import com.quest1.demopos.ui.theme.LightTextPrimary
+import com.quest1.demopos.ui.theme.Success
 import com.quest1.demopos.ui.theme.Warning
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+// Helper function to select the correct logo based on the acquirer name
+@DrawableRes
+private fun getLogoForAcquirer(acquirerName: String): Int {
+    return when (acquirerName.lowercase(Locale.ROOT)) {
+        "stripe" -> R.drawable.stripe_logo
+        "paypal" -> R.drawable.paypal_logo
+        "adyen" -> R.drawable.adyen_logo
+        else -> R.drawable.credit_card_24px // Default/fallback icon
+    }
+}
+
+// Helper function to get the custom height for each logo
+private fun getLogoHeightForAcquirer(acquirerName: String): Dp {
+    return when (acquirerName.lowercase(Locale.ROOT)) {
+        "adyen" -> 18.dp
+        "paypal" -> 20.dp
+        "stripe" -> 26.dp
+        else -> 24.dp // Default height
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,7 +60,6 @@ fun PaymentDashboardScreen(
     viewModel: PaymentDashboardViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -49,7 +75,6 @@ fun PaymentDashboardScreen(
             )
         }
     ) { paddingValues ->
-
         if (uiState.isLoading) {
             Box(
                 modifier = Modifier
@@ -61,7 +86,7 @@ fun PaymentDashboardScreen(
             }
         } else {
             LazyVerticalGrid(
-                columns = GridCells.Fixed(2), // 2 columns for tablets, you can use GridCells.Adaptive(180.dp) for responsive
+                columns = GridCells.Fixed(2),
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
@@ -84,12 +109,10 @@ fun PaymentDashboardScreen(
 fun PaymentCardItem(
     transaction: Transaction
 ) {
-
     val date = Date(transaction.createdAt)
     val dateFormat = SimpleDateFormat("MMM d, yyyy • h:mm a", Locale.getDefault())
     val formattedDate = dateFormat.format(date)
-
-    val format = NumberFormat.getCurrencyInstance(Locale.US) // or use currency code
+    val format = NumberFormat.getCurrencyInstance(Locale.US)
     format.currency = java.util.Currency.getInstance(transaction.currency)
     val amount = format.format(transaction.amount)
 
@@ -109,17 +132,20 @@ fun PaymentCardItem(
                 .padding(16.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Header with acquirer and status
+            // Header with acquirer logo and status
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = transaction.acquirerName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = getLogoForAcquirer(transaction.acquirerName)),
+                        contentDescription = transaction.acquirerName,
+                        modifier = Modifier.height(getLogoHeightForAcquirer(transaction.acquirerName))
                     )
                     Text(
                         text = transaction.id,
@@ -127,7 +153,6 @@ fun PaymentCardItem(
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                 }
-
                 PaymentStatusBadge(status = transaction.status)
             }
 
@@ -136,27 +161,26 @@ fun PaymentCardItem(
                 text = amount,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = LightTextPrimary,
+                modifier = Modifier.align(Alignment.End) // <-- MODIFIED: Aligns text to the right
             )
 
-            // Date, Time & Location
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.schedule_24px),
-                        contentDescription = "Time",
-                        modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                    Text(
-                        text = formattedDate,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                }
+            // Date and Time
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.schedule_24px),
+                    contentDescription = "Time",
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+                Text(
+                    text = formattedDate,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
             }
         }
     }
@@ -170,7 +194,6 @@ fun PaymentStatusBadge(status: String) {
         "PENDING" -> Triple(Warning.copy(alpha = 0.1f), Warning, "Pending")
         else -> Triple(Color.Gray.copy(alpha = 0.1f), Color.Gray, status)
     }
-
     Surface(
         shape = RoundedCornerShape(12.dp),
         color = backgroundColor

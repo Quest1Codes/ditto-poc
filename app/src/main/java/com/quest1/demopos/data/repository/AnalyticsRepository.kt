@@ -48,7 +48,7 @@ class AnalyticsRepository @Inject constructor(
                     name = performance.gatewayName,
                     statusInfo = statusInfo, // Use the new status object
                     latency = latencyString,
-                    successRate = "%.0f".format(performance.successRate * 100) + "%"
+                    successRate = "%.0f".format(performance.successRate) + "%"
                 )
             }
         }

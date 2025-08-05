@@ -1,14 +1,15 @@
+// File: app/src/main/java/com/quest1/demopos/ui/view/AnalyticsScreen.kt
 package com.quest1.demopos.ui.view
 
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -19,16 +20,29 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.quest1.demopos.R
 import com.quest1.demopos.data.model.analytics.Acquirer
 import com.quest1.demopos.data.model.analytics.StorePerformance
 import com.quest1.demopos.data.model.orders.Transaction
+import com.quest1.demopos.ui.theme.Error
+import com.quest1.demopos.ui.theme.LightTextPrimary
 import com.quest1.demopos.ui.theme.Success
 import com.quest1.demopos.ui.theme.Warning
-import com.quest1.demopos.ui.theme.Error
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
+
+// Helper function to select the correct logo based on the acquirer name
+@DrawableRes
+private fun getLogoForAcquirer(acquirerName: String): Int {
+    return when (acquirerName.lowercase(Locale.ROOT)) {
+        "stripe" -> R.drawable.stripe_logo
+        "paypal" -> R.drawable.paypal_logo
+        "adyen" -> R.drawable.adyen_logo
+        else -> R.drawable.credit_card_24px // Default/fallback icon
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,7 +52,6 @@ fun AnalyticsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    /* ---------- TOP BAR (left-aligned) ---------- */
     Scaffold(
         topBar = {
             TopAppBar(
@@ -47,15 +60,13 @@ fun AnalyticsScreen(
                         Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
                     }
                 },
-                title = { Text("Store Dashboard") },              // ← left-aligned by default
+                title = { Text("Store Dashboard") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
                 )
             )
         }
     ) { paddingValues ->
-
-        /* ---------- BODY ---------- */
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -64,15 +75,7 @@ fun AnalyticsScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp),
             contentPadding = PaddingValues(vertical = 16.dp)
         ) {
-
-            item { StoreHeader() }
-
-            item {
-                Divider()
-            }
-
             item { LiveGatewayRankingsSection(acquirers = uiState.acquirers) }
-
 
             item {
                 StorePerformanceSection(
@@ -80,40 +83,9 @@ fun AnalyticsScreen(
                     transactions = uiState.recentTransactions
                 )
             }
-
         }
     }
 }
-
-/* ──────────────────────────────── */
-/* Re-usable header now in the body */
-/* ──────────────────────────────── */
-@Composable
-private fun StoreHeader() {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Box(
-            modifier = Modifier
-                .size(32.dp)
-                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("S", color = Color.White, fontWeight = FontWeight.Bold)
-        }
-        Column {
-            Text("My Shop", style = MaterialTheme.typography.titleLarge)
-            Text(
-                "In-Store Dashboard",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-            )
-        }
-    }
-}
-
 
 @Composable
 fun StorePerformanceSection(
@@ -122,10 +94,9 @@ fun StorePerformanceSection(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text(
-            "This Store's Performance/Transaction Information (Today)",
+            "Transaction Information (Today)",
             style = MaterialTheme.typography.headlineSmall
         )
-
         // Performance Cards
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -221,7 +192,7 @@ fun TransactionItem(transaction: Transaction) {
     val dateFormat = SimpleDateFormat("MMM d, yyyy • h:mm a", Locale.getDefault())
     val formattedDate = dateFormat.format(date)
 
-    val format = NumberFormat.getCurrencyInstance(Locale.US) // or use currency code
+    val format = NumberFormat.getCurrencyInstance(Locale.US)
     format.currency = java.util.Currency.getInstance(transaction.currency)
     val amount = format.format(transaction.amount)
 
@@ -306,7 +277,7 @@ fun AcquirerRankingCard(acquirer: Acquirer) {
                     modifier = Modifier
                         .size(32.dp)
                         .background(
-                            MaterialTheme.colorScheme.primary,
+                            LightTextPrimary, // <-- MODIFIED COLOR
                             CircleShape
                         ),
                     contentAlignment = Alignment.Center
@@ -319,20 +290,18 @@ fun AcquirerRankingCard(acquirer: Acquirer) {
                     )
                 }
 
-                Column {
-                    Text(
-                        acquirer.name,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium
-                    )
-                    // The old Row with Box and Text for status is replaced by this Icon
-                }
+                // MODIFIED: Replaced Text with Image for the logo
+                Image(
+                    painter = painterResource(id = getLogoForAcquirer(acquirer.name)),
+                    contentDescription = "${acquirer.name} Logo",
+                    modifier = Modifier.height(24.dp) // Adjust height as needed
+                )
             }
 
             Column(horizontalAlignment = Alignment.End) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp) // Adds a small space
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
                         "Avg. Latency: ${acquirer.latency}",
@@ -342,10 +311,9 @@ fun AcquirerRankingCard(acquirer: Acquirer) {
                         painter = painterResource(id = acquirer.statusInfo.iconRes),
                         contentDescription = "Gateway Status",
                         tint = acquirer.statusInfo.color,
-                        modifier = Modifier.size(16.dp) // Adjusted size to better match text
+                        modifier = Modifier.size(16.dp)
                     )
                 }
-
                 Text(
                     "Success Rate: ${acquirer.successRate}",
                     style = MaterialTheme.typography.bodySmall
@@ -354,4 +322,3 @@ fun AcquirerRankingCard(acquirer: Acquirer) {
         }
     }
 }
-
