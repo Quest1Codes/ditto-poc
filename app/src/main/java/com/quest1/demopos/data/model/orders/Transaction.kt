@@ -1,3 +1,4 @@
+// REFACTORED FILE
 package com.quest1.demopos.data.model.orders
 
 import android.util.Log
@@ -34,21 +35,16 @@ data class Transaction(
 }
 
 fun DittoProperty.toTransaction(): Transaction {
-    return try {
-        Transaction(
-            id = deserializeProperty("_id"),
-            orderId = deserializeProperty("orderId"),
-            acquirerId = deserializeProperty("acquirerId"),
-            acquirerName = deserializeProperty("acquirerName"),
-            status = deserializeProperty("status"),
-            amount = (deserializeProperty<Number>("amount")).toDouble(),
-            currency = deserializeProperty("currency"),
-            failureReason = this["failureReason"] as? String,
-            latencyMs = (deserializeProperty<Number>("latencyMs")).toLong(),
-            createdAt = (deserializeProperty<Number>("createdAt")).toLong()
-        )
-    } catch (e: Exception) {
-        Log.e("Transaction.kt", "Error mapping document: $this", e)
-        throw MissingPropertyException("Error deserializing Transaction", this)
-    }
+    return Transaction(
+        id = this["_id"] as? String ?: "unknown_id",
+        orderId = this["orderId"] as? String ?: "unknown_order",
+        acquirerId = this["acquirerId"] as? String ?: "unknown",
+        acquirerName = this["acquirerName"] as? String ?: "Unknown",
+        status = this["status"] as? String ?: "UNKNOWN",
+        amount = (this["amount"] as? Number)?.toDouble() ?: 0.0,
+        currency = this["currency"] as? String ?: "USD",
+        failureReason = this["failureReason"] as? String,
+        latencyMs = (this["latencyMs"] as? Number)?.toLong() ?: 0L,
+        createdAt = (this["createdAt"] as? Number)?.toLong() ?: 0L
+    )
 }
