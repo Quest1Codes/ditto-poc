@@ -2,135 +2,121 @@
 
 [Click here to view codebase](https://github.com/Quest1Codes/ditto-poc) | [Click here to view demo video](https://www.youtube.com/watch?v=reocbJzh4jM)
 
+
 ## Overview
 
 The Quest1 Demo POS is an Android Point-of-Sale (POS) application built with modern Android development tools and practices. It showcases a complete, albeit simplified, POS system with features like user authentication, a product catalog, a shopping cart, and a dynamic payment processing system. The application leverages the Ditto platform for real-time data synchronization, enabling features like live analytics and peer-to-peer data sharing.
 
 ## Core Technologies
 
-- **Kotlin**: The primary programming language
-- **Jetpack Compose**: For building the user interface
-- **Hilt**: For dependency injection
-- **Retrofit**: For making network requests to authentication and payment APIs
-- **Ditto**: For real-time data synchronization and peer-to-peer communication
-- **Jetpack ViewModel**: For managing UI-related data
-- **Coroutines & Flow**: For asynchronous programming
-- **Android Security (EncryptedSharedPreferences)**: For secure storage of sensitive data like authentication tokens
+* **Kotlin**: The primary programming language.
+* **Jetpack Compose**: For building the user interface.
+* **Hilt**: For dependency injection.
+* **Retrofit**: For making network requests to authentication and payment APIs.
+* **Ditto**: For real-time data synchronization and peer-to-peer communication.
+* **Jetpack ViewModel**: For managing UI-related data.
+* **Coroutines & Flow**: For asynchronous programming.
+* **Android Security (EncryptedSharedPreferences)**: For secure storage of sensitive data like authentication tokens.
 
-## File-by-File Documentation
+## Application Entry Points
 
-## 1. Application & Main Activity
+The entry points are the files that initialize and launch the application.
 
-#### DittoPosApp.kt
-This is the main application class. The `@HiltAndroidApp` annotation enables Hilt for dependency injection throughout the application.
+### `DittoPosApp.kt`
 
-#### MainActivity.kt
-This is the single activity in the application.
+This is the main application class that is created when the app starts. It is annotated with `@HiltAndroidApp`, which sets up the Hilt dependency injection framework for the entire application.
 
-- It's annotated with `@AndroidEntryPoint` to allow Hilt to inject dependencies
-- The `onCreate` method sets up the UI using Jetpack Compose by calling `setContent`
-- `Quest1P0STheme` applies the application's theme
-- `AppNavigation()` sets up the navigation graph for the entire app
-- It also includes a `requestPermissions()` function to handle the necessary permissions for Ditto's synchronization features
+### `MainActivity.kt`
 
-## 2. Dependency Injection (DI)
+This file contains the main screen of the application and is the primary entry point for the user interface. It sets up the overall theme and navigation for the app. It also handles requesting necessary permissions for the Ditto synchronization framework to function correctly.
 
-The `di` package contains Hilt modules for providing dependencies throughout the app.
+## Dependency Injection
 
-#### AppModule.kt
-Provides application-wide singletons:
+Dependency injection is a technique used to provide the necessary objects (dependencies) to a class. This project uses Hilt for dependency injection, and the configuration is organized into modules.
 
-- **provideDittoManager**: Initializes and provides the DittoManager, which is the central point of interaction with the Ditto SDK. It's configured with the App ID and authentication URLs from BuildConfig
-- **provideMasterKeyAlias & provideEncryptedSharedPreferences**: Set up and provide EncryptedSharedPreferences for securely storing sensitive data like authentication tokens
-- **provideDittoStoreManager**: Provides a manager for interacting with the Ditto data store
+### `di/AppModule.kt`
 
-#### AuthModule.kt
-Provides dependencies related to authentication:
+This module provides application-wide dependencies that are available to all parts of the app. It is responsible for initializing and configuring:
+- **DittoManager**: Manages the core functionalities of the Ditto platform.
+- **EncryptedSharedPreferences**: Provides a secure way to store sensitive data.
+- **DittoStoreManager**: Manages the data store for the Ditto platform.
 
-- **provideMoshi**: Provides a Moshi instance for JSON serialization/deserialization
-- **provideRetrofit**: Provides a Retrofit instance configured for the authentication service
-- **provideAuthApiService**: Provides an implementation of the AuthApiService interface for making authentication-related API calls
+### `di/AuthModule.kt`
 
-#### PaymentModule.kt
-Provides dependencies for the payment functionality:
+This module provides dependencies related to authentication. It sets up **Retrofit**, a library for making network requests to an authentication service, and **Moshi**, a library for converting JSON data to and from Kotlin objects.
 
-- **providePaymentRetrofit**: Provides a separate Retrofit instance for the payment service. It's annotated with `@Named("PaymentRetrofit")` to distinguish it from the authentication Retrofit instance
-- **providePaymentApiService**: Provides an implementation of the PaymentApiService interface
+### `di/PaymentModule.kt`
 
-## 3. User Interface (UI)
+Similar to `AuthModule`, this module is responsible for providing dependencies for payment-related network requests. It configures a separate Retrofit instance for the payment service.
 
-The UI is built entirely with Jetpack Compose. The `ui/view` package contains the screens and their corresponding ViewModels.
+## User Interface (UI)
 
-#### AuthScreen.kt & AuthViewModel.kt
+The UI package contains all the screens and UI components of the application. The UI is built using Jetpack Compose, a modern toolkit for building native Android UI.
 
-**Screen**: Provides the UI for user login and registration. It switches between LoginUI and RegisterUI based on user actions. It observes the authState from the AuthViewModel to display loading indicators, error messages, or navigate on success.
+### `ui/view/AuthScreen.kt`
 
-**ViewModel**: Manages the state for the authentication screen. It handles the logic for login, register, and logout. It uses EncryptedSharedPreferences to persist the authentication token and user role. It interacts with the DittoManager to provide the authentication token when required for synchronization. It validates the JWT token to check for expiration.
+This file defines the user interface for user authentication, including both the login and registration screens. It captures user input for user ID and password and communicates with the `AuthViewModel` to handle the authentication logic.
 
-#### ShopScreen.kt & ShopViewModel.kt
+### `ui/view/ShopScreen.kt`
 
-**Screen**: This is the main screen of the POS, displaying a list of products. It includes a top app bar with settings and a bottom navigation bar to switch between the shop and the cart. A floating action button (FloatingCheckoutBar) appears when items are added to the cart.
+This screen displays the list of products available for sale. It allows users to add items to their cart and view the total number of items and the total amount. It also includes a top app bar with settings and a bottom navigation bar.
 
-**ViewModel**: Manages the state for the shop. It fetches the list of products and observes the active order using use cases. It combines data from the inventory and the current order to create the ShopUiState. It handles updating the quantity of items in the cart and removing items.
+### `ui/view/CartScreen.kt`
 
-#### CartScreen.kt
+This screen displays the items that the user has added to their shopping cart. Users can view and adjust the quantity of each item, remove items from the cart, and proceed to payment.
 
-**Screen**: Displays the items that the user has added to the cart. Users can adjust quantities or remove items. It shows the total amount and a "Proceed to Payment" button. It shares the ShopViewModel to access cart data.
+### `ui/view/PaymentScreen.kt`
 
-#### PaymentScreen.kt & PaymentViewModel.kt
+This screen handles the payment process, showing different states such as "initiating," "processing," "successful," or "failed".
 
-**Screen**: Manages the payment flow, showing different UI states like "Selecting Gateway," "Initiating," "Processing," "Successful," or "Failed."
+### `ui/view/AnalyticsScreen.kt`
 
-**ViewModel**: Orchestrates the payment process. It uses a MabGatewaySelector (Multi-Armed Bandit) to choose the optimal payment gateway. It simulates the payment process with delays. It updates the UI state based on the payment progress and result.
+This screen displays analytics and performance data for the store, such as total transactions, revenue, and recent transactions. It also shows rankings of different payment gateways based on their performance.
 
-#### AnalyticsScreen.kt & AnalyticsViewModel.kt
+### `ui/view/PaymentDashboardScreen.kt`
 
-**Screen**: A dashboard that displays store analytics, including live gateway rankings, store performance metrics (total transactions, revenue), and a list of recent transactions.
+This screen provides a dashboard of all payment transactions, displaying details for each payment such as the acquirer, amount, and status.
 
-**ViewModel**: Fetches and combines data from different repositories and use cases to provide a unified AnalyticsUiState.
+### `ui/view/PresenceViewer.kt`
 
-#### PresenceViewer.kt & PresenceViewModel.kt
+This screen displays the Ditto Presence Viewer, a tool that shows real-time information about other devices connected to the network.
 
-**Screen**: Integrates Ditto's DittoPresenceViewer, a pre-built UI component that displays information about other devices on the network that are part of the same Ditto mesh.
+### UI Components
 
-**ViewModel**: Provides the Ditto instance required by the DittoPresenceViewer.
+- **`components/composables.kt`**: This file contains reusable UI components like `PrimaryActionButton` for buttons and `QuantityControlButton` for increasing or decreasing item quantities.
+- **`components/TerminalId.kt`**: This component displays the terminal ID and provides additional information about the terminal's connection status through a tooltip.
+- **`components/ConnectionStatusIndicator.kt`**: A simple visual indicator that shows whether the device is connected or disconnected.
 
-#### PaymentDashboardScreen.kt & PaymentDashboardViewModel.kt
+## ViewModels
 
-**Screen**: Displays a grid of all payment transactions, showing details like the acquirer, amount, status, and timestamp.
+ViewModels are responsible for preparing and managing the data for the UI. They are designed to store and manage UI-related data in a lifecycle-conscious way.
 
-**ViewModel**: Loads the list of all transactions.
+### `ui/view/AuthViewModel.kt`
 
-#### PaymentGatewayScreen.kt & PaymentGatewayViewModel.kt
+This ViewModel handles the logic for user authentication. It interacts with the `AuthRepository` to perform login and registration and manages the authentication state (e.g., idle, loading, success, error). It also manages the authentication token and provides it to the Ditto instance when required.
 
-**Screen**: This screen is the final step before payment. It displays the total order amount, a mock credit card UI, and a summary of the order.
+### `ui/view/ShopViewModel.kt`
 
-**ViewModel**: Fetches the active order and the optimal payment gateway to prepare for the final payment confirmation.
+This ViewModel manages the state for the `ShopScreen`. It fetches the list of available items from the `InventoryRepository` and keeps track of the items in the shopping cart.
 
-## 4. UI Components
+### `ui/view/PaymentViewModel.kt`
 
-The `ui/components` package contains reusable Compose functions.
+This ViewModel handles the logic for the payment process. It interacts with use cases to select the best payment gateway and process the payment. It updates the UI with the current status of the payment.
 
-#### components.kt
+### `ui/view/AnalyticsViewModel.kt`
 
-- **PrimaryActionButton**: A standardized button for primary actions
-- **QuantityControlButton**: A component with "+" and "-" buttons to control the quantity of an item
-- **ProductItemCard**: A card to display a single product in the shop list
+This ViewModel provides the data for the `AnalyticsScreen`. It fetches store performance data, recent transactions, and acquirer rankings from the `AnalyticsRepository` and `TransactionUseCase`.
 
-#### TerminalId.kt
-A component that displays the current terminal's ID and shows a tooltip with more detailed connection information (like the Ditto peer key and connection status).
+### `ui/view/ShopTopBarViewModel.kt`
 
-#### ConnectionStatusIndicator.kt
-A simple dot that changes color (green/red) to indicate the connection status.
+This ViewModel provides the data for the top app bar in the `ShopScreen`, including the terminal ID and terminal information.
 
-## 5. Theming
+## Theming
 
-#### Color.kt
-Defines the color palette for the application.
+The `ui/theme` directory contains files that define the visual appearance of the application.
 
-#### Theme.kt
-Sets up the MaterialTheme for the application. It defines light and dark color schemes, custom typography (using the "Inter" font), and configures the system status bar color.
+- **`Color.kt`**: Defines the color palette used throughout the app.
+- **`Theme.kt`**: Sets up the overall theme for the application, including the color schemes for light and dark modes and the typography.
 
----
 
 This documentation provides an understanding of the Quest1 Demo POS application's structure and functionality. For more specific details, you can refer to the inline comments and the implementation within each file.
