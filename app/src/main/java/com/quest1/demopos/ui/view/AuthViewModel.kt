@@ -4,14 +4,13 @@ import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.quest1.demopos.data.repository.AuthRepository
-import com.quest1.demopos.data.repository.LoginResult // Import the new data class
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import live.ditto.ditto_wrapper.DittoManager // Import DittoManager
+import live.ditto.ditto_wrapper.DittoManager
 import javax.inject.Inject
-import kotlinx.coroutines.flow.collect // <-- ADDED IMPORT
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import android.util.Log
 import com.quest1.demopos.data.repository.SessionManager
@@ -98,7 +97,7 @@ class AuthViewModel @Inject constructor(
                 _loginResultToken.value = loginResult.accessToken
                 _authState.value = AuthState.Success(loginResult.role)
                 viewModelScope.launch {
-                    upsertTerminalUseCase.execute(username) // Using username as the terminal ID
+                    upsertTerminalUseCase.execute(username)
                 }
             }.onFailure { error ->
                 _authState.value = AuthState.Error(error.message ?: "An unknown error occurred")

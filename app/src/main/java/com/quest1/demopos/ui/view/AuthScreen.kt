@@ -19,7 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.quest1.demopos.R // Make sure to import your R file
+import com.quest1.demopos.R
 import com.quest1.demopos.ui.theme.LightTextPrimary
 import androidx.compose.foundation.Image
 @Composable
@@ -111,7 +111,7 @@ fun LoginUI(
         )
 
         TextButton(
-            onClick = { /* TODO: Handle forgot password */ },
+            onClick = {},
             modifier = Modifier.align(Alignment.End)
         ) {
             Text("Forgot Password?",
@@ -165,7 +165,7 @@ fun RegisterUI(
     var userId by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var role by remember { mutableStateOf("Terminal") }
-    var expanded by remember { mutableStateOf(false) } // State to control dropdown
+    var expanded by remember { mutableStateOf(false) }
     val roles = listOf("Terminal", "Admin")
     val authState by viewModel.authState.collectAsState()
 
@@ -176,7 +176,6 @@ fun RegisterUI(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // App Icon
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(

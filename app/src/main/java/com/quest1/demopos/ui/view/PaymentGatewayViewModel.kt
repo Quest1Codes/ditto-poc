@@ -1,4 +1,3 @@
-// File: app/src/main/java/com/quest1/demopos/ui/view/PaymentGatewayViewModel.kt
 package com.quest1.demopos.ui.view
 
 import androidx.compose.runtime.State

@@ -1,8 +1,9 @@
 package com.quest1.demopos.data.model.analytics
 
 import live.ditto.ditto_wrapper.DittoProperty
+import live.ditto.ditto_wrapper.MissingPropertyException
+import live.ditto.ditto_wrapper.deserializeProperty
 
-// Performance metrics for a single payment gateway
 data class GatewayPerformance(
     val _id: String,
     val gatewayId: String,
@@ -11,30 +12,29 @@ data class GatewayPerformance(
     val totalSuccesses: Long,
     val successRate: Double
 ) {
-    companion object {
-        const val COLLECTION_NAME = "gateway_performance"
-
-        // Safely handles null or missing properties by providing default values.
-        fun fromDittoDocument(doc: DittoProperty): GatewayPerformance {
-            return GatewayPerformance(
-                _id = doc["_id"] as? String ?: "unknown_id",
-                gatewayId = doc["gatewayId"] as? String ?: "",
-                gatewayName = doc["gatewayName"] as? String ?: "Unknown Gateway",
-                totalAttempts = (doc["totalAttempts"] as? Number)?.toLong() ?: 0L,
-                totalSuccesses = (doc["totalSuccesses"] as? Number)?.toLong() ?: 0L,
-                successRate = (doc["successRate"] as? Number)?.toDouble() ?: 0.0
-            )
-        }
+    fun serializeAsMap(): Map<String, Any?> {
+        return mapOf(
+            "_id" to this._id,
+            "gatewayId" to this.gatewayId,
+            "gatewayName" to this.gatewayName,
+            "totalAttempts" to this.totalAttempts,
+            "totalSuccesses" to this.totalSuccesses,
+            "successRate" to this.successRate
+        )
     }
 }
 
-fun GatewayPerformance.toDocument(): Map<String, Any?> {
-    return mapOf(
-        "_id" to this._id,
-        "gatewayId" to this.gatewayId,
-        "gatewayName" to this.gatewayName,
-        "totalAttempts" to this.totalAttempts,
-        "totalSuccesses" to this.totalSuccesses,
-        "successRate" to this.successRate
-    )
+fun DittoProperty.toGatewayPerformance(): GatewayPerformance {
+    return try {
+        GatewayPerformance(
+            _id = deserializeProperty("_id"),
+            gatewayId = deserializeProperty("gatewayId"),
+            gatewayName = deserializeProperty("gatewayName"),
+            totalAttempts = (deserializeProperty<Number>("totalAttempts")).toLong(),
+            totalSuccesses = (deserializeProperty<Number>("totalSuccesses")).toLong(),
+            successRate = (deserializeProperty<Number>("successRate")).toDouble()
+        )
+    } catch(e: Exception) {
+        throw MissingPropertyException("Error deserializing GatewayPerformance", this)
+    }
 }

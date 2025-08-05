@@ -95,7 +95,6 @@ fun StorePerformanceSection(
             "Transaction Information (Today)",
             style = MaterialTheme.typography.headlineSmall
         )
-        // Performance Cards
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -159,7 +158,6 @@ fun StorePerformanceSection(
             }
         }
 
-        // Recent Transactions Card
         Card(
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             colors = CardDefaults.cardColors(
@@ -275,7 +273,7 @@ fun AcquirerRankingCard(acquirer: Acquirer) {
                     modifier = Modifier
                         .size(32.dp)
                         .background(
-                            LightTextPrimary, // <-- MODIFIED COLOR
+                            LightTextPrimary,
                             CircleShape
                         ),
                     contentAlignment = Alignment.Center
@@ -288,7 +286,6 @@ fun AcquirerRankingCard(acquirer: Acquirer) {
                     )
                 }
 
-                // MODIFIED: Replaced Text with Image for the logo
                 Image(
                     painter = painterResource(id = getLogoForAcquirer(acquirer.name)),
                     contentDescription = "${acquirer.name} Logo",

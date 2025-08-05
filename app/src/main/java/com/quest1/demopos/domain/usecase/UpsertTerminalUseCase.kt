@@ -1,20 +1,20 @@
 package com.quest1.demopos.domain.usecase
 
 import com.quest1.demopos.data.model.core.Terminal
-import com.quest1.demopos.data.repository.CoreRepository
+import com.quest1.demopos.data.repository.DittoRepository
 import javax.inject.Inject
 
 class UpsertTerminalUseCase @Inject constructor(
-    private val coreRepository: CoreRepository
+    private val dittoRepository: DittoRepository
 ) {
-    suspend fun execute(userId: String) {
+    suspend fun execute(terminalId: String) {
         val terminal = Terminal(
-            _id = userId,
+            _id = terminalId,
             storeId = "store_01",
-            name = "Terminal-$userId",
-            ipAddress = "192.168.1.101",
+            name = "Terminal - $terminalId",
+            ipAddress = "192.168.1.1",
             lastSeen = System.currentTimeMillis()
         )
-        coreRepository.upsertTerminal(terminal)
+        dittoRepository.upsertTerminal(terminal)
     }
 }

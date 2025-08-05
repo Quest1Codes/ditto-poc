@@ -63,7 +63,7 @@ fun AppNavigation() {
             ShopScreen(
                 viewModel = shopViewModel,
                 onNavigateToCart = { navController.navigate(AppRoutes.CART) },
-                navController = navController // This line was missing
+                navController = navController
             )
         }
         composable(AppRoutes.CART) {
@@ -74,15 +74,13 @@ fun AppNavigation() {
                     navController.popBackStack()
                 },
                 onProceedToPayment = {
-                    // Navigate to the new Payment Gateway Screen
                     val totalAmount = uiState.cartTotal
-                    val orderNumber = (1000000..9999999).random() // Generate a random order number
+                    val orderNumber = (1000000..9999999).random()
                     navController.navigate("${AppRoutes.PAYMENT_GATEWAY}/$totalAmount/$orderNumber")
                 }
             )
         }
 
-        // New composable for the Payment Gateway screen
         composable(
             route = "${AppRoutes.PAYMENT_GATEWAY}/{totalAmount}/{orderNumber}",
             arguments = listOf(
@@ -93,7 +91,6 @@ fun AppNavigation() {
             PaymentGatewayScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onPayNowClicked = {
-                    // After clicking Pay Now, navigate to the final processing screen
                     navController.navigate(AppRoutes.PAYMENT)
                 }
             )

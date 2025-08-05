@@ -1,4 +1,3 @@
-// [Source: 1937]
 package com.quest1.demopos.ui.view
 
 import androidx.annotation.DrawableRes

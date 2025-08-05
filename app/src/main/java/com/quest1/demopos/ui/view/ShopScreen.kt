@@ -29,7 +29,7 @@ import com.quest1.demopos.ui.navigation.AppRoutes
 import com.quest1.demopos.ui.theme.LightTextPrimary
 import java.text.NumberFormat
 import java.util.Locale
-import com.quest1.demopos.R // Make sure to import your R file
+import com.quest1.demopos.R
 import com.quest1.demopos.ui.components.TerminalId
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,9 +49,8 @@ fun ShopScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { /* MyShop Text is removed as requested */ },
+                title = {},
                 navigationIcon = {
-                    // Pass both pieces of state to the composable
                     TerminalId(terminalId = terminalId, terminalInfo = terminalInfo)
                 },
                 actions = {
@@ -134,7 +133,6 @@ fun ShopScreen(
             )
         },
         floatingActionButton = {
-            // The checkout bar is now a Floating Action Button
             if (uiState.cartItemCount > 0) {
                 FloatingCheckoutBar(
                     totalAmount = currencyFormat.format(uiState.cartTotal),

@@ -8,11 +8,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.random.Random
 
-
 @Singleton
 class MabGatewaySelector @Inject constructor(
     private val paymentRepository: PaymentRepository,
-    private val performanceData: GatewayPerformanceData
+    private val transactionUseCase: TransactionUseCase
 ) {
     private val epsilon = 0.5
     private val successRateWeight = 0.7
@@ -24,7 +23,8 @@ class MabGatewaySelector @Inject constructor(
             throw IllegalStateException("No payment gateways available.")
         }
 
-        val triedGatewayIds = performanceData.metrics.map { it.gatewayId }.toSet()
+        val allTransactions = transactionUseCase.getTransactions().first()
+        val triedGatewayIds = allTransactions.map { it.acquirerId }.toSet()
         val untriedGateways = availableGateways.filter { it.id !in triedGatewayIds }
 
         if (untriedGateways.isNotEmpty()) {
@@ -44,11 +44,11 @@ class MabGatewaySelector @Inject constructor(
         }
     }
 
-    private fun findBestGateway(gateways: List<Gateway>): Gateway {
-        val statsByGateway = performanceData.metrics.groupBy { it.gatewayId }
+    private suspend fun findBestGateway(gateways: List<Gateway>): Gateway {
+        val allTransactions = transactionUseCase.getTransactions().first()
+        val statsByGateway = allTransactions.groupBy { it.acquirerId }
 
-        val allLatencies = performanceData.metrics
-            .mapNotNull { it.metrics["latencyMs"] as? Long }
+        val allLatencies = allTransactions.map { it.latencyMs }
         val minLatency = allLatencies.minOrNull()?.toDouble() ?: 0.0
         val maxLatency = allLatencies.maxOrNull()?.toDouble() ?: 1.0
 
@@ -57,9 +57,8 @@ class MabGatewaySelector @Inject constructor(
             if (stats.isNullOrEmpty()) {
                 -1.0
             } else {
-                val successRate = stats.count { it.wasSuccess }.toDouble() / stats.size
-                val avgLatency = stats.mapNotNull { it.metrics["latencyMs"] as? Long }
-                    .let { latencies -> if (latencies.isEmpty()) 0.0 else latencies.average() }
+                val successRate = stats.count { it.status == "SUCCESS" }.toDouble() / stats.size
+                val avgLatency = stats.map { it.latencyMs }.average()
                 val normalizedLatency = if ((maxLatency - minLatency) > 0) {
                     1 - ((avgLatency - minLatency) / (maxLatency - minLatency))
                 } else {

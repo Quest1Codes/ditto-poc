@@ -15,7 +15,7 @@ import javax.inject.Singleton
 
 @Singleton
 class AnalyticsRepository @Inject constructor(
-    private val gatewayPerformanceRepository: GatewayPerformanceRepositoryImpl,
+    private val gatewayPerformanceRepository: GatewayPerformanceRepository,
     private val performanceData: GatewayPerformanceData
 ) {
     fun getAcquirerRankings(): Flow<List<Acquirer>> {
@@ -31,7 +31,6 @@ class AnalyticsRepository @Inject constructor(
                     0L
                 }
 
-                // Determine the status icon and color based on latency
                 val statusInfo = when {
                     avgLatency <= 0 -> GatewayStatusInfo(R.drawable.signal_cellular_nodata_24px, Color.Gray)
                     avgLatency < 8000 -> GatewayStatusInfo(R.drawable.signal_cellular_alt_24px, Success)

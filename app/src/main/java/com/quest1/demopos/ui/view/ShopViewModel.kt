@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.quest1.demopos.data.model.inventory.Item
-import com.quest1.demopos.data.repository.InventoryRepository
 import com.quest1.demopos.domain.usecase.GetShopItemsUseCase
 import com.quest1.demopos.domain.usecase.InsertItemUseCase
 import com.quest1.demopos.domain.usecase.order.GetActiveOrderUseCase
@@ -12,11 +11,10 @@ import com.quest1.demopos.domain.usecase.order.UpdateOrderItemQuantityUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.util.UUID
 import javax.inject.Inject
 import com.quest1.demopos.data.sampleItems
 
-// Represents an inventory item and its quantity in the cart.
+// Data classes ShopItemState and ShopUiState remain the same.
 data class ShopItemState(
     val item: Item,
     val quantityInCart: Int = 0
@@ -33,9 +31,9 @@ data class ShopUiState(
         get() = items.filter { it.quantityInCart > 0 }
 }
 
+
 @HiltViewModel
 class ShopViewModel @Inject constructor(
-    private val inventoryRepository: InventoryRepository,
     private val getShopItemsUseCase: GetShopItemsUseCase,
     private val insertItemUseCase: InsertItemUseCase,
     private val getActiveOrderUseCase: GetActiveOrderUseCase,
@@ -50,11 +48,9 @@ class ShopViewModel @Inject constructor(
         observeInventoryAndActiveOrder()
     }
 
-
     private fun checkAndSeedInitialData() {
         viewModelScope.launch {
-            val initialInventory = getShopItemsUseCase.execute().first()
-            if (initialInventory.isEmpty()) {
+            if (getShopItemsUseCase.execute().first().isEmpty()) {
 //                addSampleItemsForTesting()
             }
         }

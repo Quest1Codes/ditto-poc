@@ -1,8 +1,8 @@
 package com.quest1.demopos.data.repository
 
 import com.quest1.demopos.data.model.analytics.GatewayPerformance
-import com.quest1.demopos.data.model.analytics.GetAllGatewayPerformanceQuery
-import com.quest1.demopos.data.model.analytics.UpsertGatewayPerformanceQuery
+import com.quest1.demopos.data.model.analytics.ditto.GATEWAY_PERFORMANCE_COLLECTION_NAME
+import com.quest1.demopos.data.model.analytics.ditto.GetAllGatewayPerformanceQuery
 import kotlinx.coroutines.flow.Flow
 import live.ditto.ditto_wrapper.DittoStoreManager
 import live.ditto.ditto_wrapper.dittowrappers.DittoCollectionSubscription
@@ -12,24 +12,18 @@ import javax.inject.Singleton
 
 
 @Singleton
-class GatewayPerformanceRepositoryImpl @Inject constructor(
+class GatewayPerformanceRepository @Inject constructor(
     private val dittoStoreManager: DittoStoreManager
 ) {
 
     init {
         val subscription = object : DittoCollectionSubscription {
-            override val collectionName: String = GatewayPerformance.COLLECTION_NAME
-            override val subscriptionQuery: String = "SELECT * FROM ${GatewayPerformance.COLLECTION_NAME}"
+            override val collectionName: String = GATEWAY_PERFORMANCE_COLLECTION_NAME
+            override val subscriptionQuery: String = "SELECT * FROM ${GATEWAY_PERFORMANCE_COLLECTION_NAME}"
             override val subscriptionQueryArgs: Map<String, Any> = emptyMap()
             override val evictionQuery: String = ""
         }
         dittoStoreManager.registerSubscription(subscription)
-    }
-
-    suspend fun upsertPerformance(performance: GatewayPerformance) {
-        dittoStoreManager.executeQuery(
-            dittoQuery = UpsertGatewayPerformanceQuery(performance)
-        )
     }
 
     fun observePerformanceRankings(): Flow<List<GatewayPerformance>> {

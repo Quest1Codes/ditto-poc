@@ -26,7 +26,6 @@ data class PaymentResponse(
     val failureReason: String? = null
 )
 
-// Retrofit interface for the payment gateway service.
 interface PaymentApiService {
     @POST("{acquirerId}/pay")
     suspend fun processPayment(

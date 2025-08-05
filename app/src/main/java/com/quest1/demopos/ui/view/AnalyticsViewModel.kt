@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.quest1.demopos.data.model.analytics.Acquirer
 import com.quest1.demopos.data.model.analytics.StorePerformance
 import com.quest1.demopos.data.model.orders.Transaction
-import com.quest1.demopos.data.repository.AnalyticsRepository
 import com.quest1.demopos.domain.usecase.TransactionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,10 +24,8 @@ data class AnalyticsUiState(
 
 @HiltViewModel
 class AnalyticsViewModel @Inject constructor(
-    private val analyticsRepository: AnalyticsRepository,
-    private val transactionUseCase: TransactionUseCase
+    private val transactionUseCase: TransactionUseCase // The only dependency needed
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(AnalyticsUiState())
     val uiState: StateFlow<AnalyticsUiState> = _uiState.asStateFlow()
 
@@ -37,12 +34,12 @@ class AnalyticsViewModel @Inject constructor(
     }
 
     private fun loadAnalyticsData() {
+        // Combine all data flows from the single use case
         combine(
             transactionUseCase.getStorePerformance(),
             transactionUseCase.getRecentTransactions(),
-            analyticsRepository.getAcquirerRankings()
+            transactionUseCase.getAcquirerRankings()
         ) { performance, transactions, acquirers ->
-            println(transactions)
             AnalyticsUiState(
                 storePerformance = performance,
                 recentTransactions = transactions,
@@ -50,6 +47,6 @@ class AnalyticsViewModel @Inject constructor(
                 isLoading = false
             )
         }.onEach { newState -> _uiState.value = newState }
-         .launchIn(viewModelScope)
+            .launchIn(viewModelScope)
     }
 }

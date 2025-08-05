@@ -18,7 +18,6 @@ import androidx.compose.ui.unit.dp
 import com.quest1.demopos.ui.components.PrimaryActionButton
 import com.quest1.demopos.ui.components.QuantityControlButton
 import com.quest1.demopos.ui.theme.LightTextPrimary
-import com.quest1.demopos.ui.view.ShopViewModel // Assuming ShopScreen components are in the same package or imported
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -49,7 +48,6 @@ fun CartScreen(
             )
         },
         bottomBar = {
-            // AppBottomNavigationBar needs to be defined or imported
             // AppBottomNavigationBar(
             //     currentRoute = "cart",
             //     onNavigate = { if (it == "shop") onNavigateBack() },
