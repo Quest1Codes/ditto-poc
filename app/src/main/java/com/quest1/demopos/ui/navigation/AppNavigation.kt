@@ -16,10 +16,9 @@ object AppRoutes {
     const val AUTH = "auth"
     const val SHOP = "shop"
     const val CART = "cart"
-    const val PAYMENT_GATEWAY = "payment_gateway" // New Route
+    const val PAYMENT_GATEWAY = "payment_gateway"
     const val PAYMENT = "payment"
 
-    // NEW
     const val ANALYTICS = "analytics"
     const val PAYMENT_DASHBOARD = "payment_dashboard"
     const val PRESENCE_VIEWER = "presence_viewer"

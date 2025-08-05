@@ -33,7 +33,6 @@ fun AuthScreen(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        // Toggles between Login and Register UIs
         if (isRegistering) {
             RegisterUI(viewModel = viewModel) {
                 isRegistering = false
@@ -52,7 +51,6 @@ fun LoginUI(
     onLoginSuccess: (String) -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
-    // State for the User ID and Password fields
     var userId by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val authState by viewModel.authState.collectAsState()
@@ -79,7 +77,6 @@ fun LoginUI(
             modifier = Modifier.padding(top = 4.dp, bottom = 32.dp)
         )
 
-        // User ID input field
         OutlinedTextField(
             value = userId,
             onValueChange = { userId = it },
@@ -97,7 +94,6 @@ fun LoginUI(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // **FIXED**: Corrected `onValueValueChange` to `onValueChange`
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -114,7 +110,6 @@ fun LoginUI(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
         )
 
-        // Forgot Password button
         TextButton(
             onClick = { /* TODO: Handle forgot password */ },
             modifier = Modifier.align(Alignment.End)
@@ -138,7 +133,6 @@ fun LoginUI(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Navigation to Register screen
         TextButton(onClick = onNavigateToRegister) {
             Text("Don't have an account yet? Register here.",
                 style = MaterialTheme.typography.bodyMedium,
@@ -146,7 +140,6 @@ fun LoginUI(
         }
 
 
-        // Handles UI updates for different authentication states
         when (val state = authState) {
             is AuthState.Loading -> CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
             is AuthState.Error -> Text(
@@ -200,7 +193,6 @@ fun RegisterUI(
             modifier = Modifier.padding(top = 4.dp, bottom = 32.dp)
         )
 
-        // User ID input field
         OutlinedTextField(
             value = userId,
             onValueChange = { userId = it },
@@ -218,7 +210,6 @@ fun RegisterUI(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Password input field
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -237,7 +228,6 @@ fun RegisterUI(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Role dropdown
         Box {
             OutlinedTextField(
                 value = role,
@@ -291,14 +281,12 @@ fun RegisterUI(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Navigation to Login screen
         TextButton(onClick = onNavigateToLogin) {
             Text("Already have an account? Sign In",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray)
         }
 
-        // Handles UI updates for different registration states
         when (val state = authState) {
             is AuthState.Loading -> CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
             is AuthState.Error -> Text(
@@ -307,7 +295,6 @@ fun RegisterUI(
                 modifier = Modifier.padding(top = 16.dp)
             )
             is AuthState.Success -> {
-                // Navigate back to login on successful registration
                 LaunchedEffect(Unit) {
                     onNavigateToLogin()
                 }

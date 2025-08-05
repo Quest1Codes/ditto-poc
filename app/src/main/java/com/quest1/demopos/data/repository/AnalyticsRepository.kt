@@ -31,7 +31,6 @@ class AnalyticsRepository @Inject constructor(
                     0L
                 }
 
-                // --- START OF MODIFICATION ---
                 // Determine the status icon and color based on latency
                 val statusInfo = when {
                     avgLatency <= 0 -> GatewayStatusInfo(R.drawable.signal_cellular_nodata_24px, Color.Gray)
@@ -41,12 +40,11 @@ class AnalyticsRepository @Inject constructor(
                 }
 
                 val latencyString = if (avgLatency > 0) "${avgLatency}ms" else "N/A"
-                // --- END OF MODIFICATION ---
 
                 Acquirer(
                     rank = index + 1,
                     name = performance.gatewayName,
-                    statusInfo = statusInfo, // Use the new status object
+                    statusInfo = statusInfo,
                     latency = latencyString,
                     successRate = "%.0f".format(performance.successRate) + "%"
                 )

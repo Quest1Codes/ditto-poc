@@ -8,7 +8,6 @@ import com.quest1.demopos.data.network.RegisterRequest
 import javax.inject.Inject
 import javax.inject.Singleton
 
-// Data class to hold the result of a successful login
 data class LoginResult(val accessToken: String, val role: String)
 
 @Singleton
@@ -26,7 +25,6 @@ class AuthRepository @Inject constructor(
                 val role = decodedJWT.getClaim("role").asString()
 
                 if (role != null) {
-                    // Return the new LoginResult object on success
                     Result.success(LoginResult(accessToken = token, role = role))
                 } else {
                     Result.failure(Exception("Role not found in token"))

@@ -119,7 +119,6 @@ fun PaymentStatusComponent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Main content (Icon, Title, Subtitle, Action Button)
         Column(
             modifier = Modifier.weight(1f),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -152,15 +151,13 @@ fun PaymentStatusComponent(
             }
         }
 
-        // Gateway Logo at the bottom
         if (logoRes != null) {
             Image(
                 painter = painterResource(id = logoRes),
                 contentDescription = "Payment Gateway Logo",
                 modifier = Modifier
-                    .height(76.dp) // Increased logo size
+                    .height(76.dp)
                     .padding(bottom = 32.dp),
-                // No tint applied to the gateway logo
                 colorFilter = null
             )
         }

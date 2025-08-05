@@ -1,4 +1,3 @@
-// File: app/src/main/java/com/quest1/demopos/ui/view/AnalyticsScreen.kt
 package com.quest1.demopos.ui.view
 
 import androidx.annotation.DrawableRes
@@ -32,14 +31,13 @@ import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
-// Helper function to select the correct logo based on the acquirer name
 @DrawableRes
 private fun getLogoForAcquirer(acquirerName: String): Int {
     return when (acquirerName.lowercase(Locale.ROOT)) {
         "stripe" -> R.drawable.stripe_logo
         "paypal" -> R.drawable.paypal_logo
         "adyen" -> R.drawable.adyen_logo
-        else -> R.drawable.credit_card_24px // Default/fallback icon
+        else -> R.drawable.credit_card_24px
     }
 }
 

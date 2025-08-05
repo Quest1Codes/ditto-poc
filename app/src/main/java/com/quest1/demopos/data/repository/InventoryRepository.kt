@@ -1,9 +1,3 @@
-/*
- * File: app/src/main/java/com/quest1/demopos/data/repository/InventoryRepository.kt
- * Description: Corrected a ClassCastException when mapping the price field.
- * - The code now safely handles numeric types from Ditto by casting to `Number`
- * and then converting to `Double`.
- */
 package com.quest1.demopos.data.repository
 
 import com.quest1.demopos.data.model.inventory.Item
@@ -30,11 +24,9 @@ class InventoryRepository @Inject constructor(
             documents.mapNotNull { docMap ->
                 try {
                     Item(
-                        // The primary key from Ditto is always `_id`
                         id = docMap["_id"].toString(),
                         itemId = docMap["itemId"] as String,
                         name = docMap["name"] as String,
-                        // CORRECTED LINE: Safely convert any number type to Double.
                         price = (docMap["price"] as Number).toDouble(),
                         description = docMap["description"] as String,
                         category = docMap["category"] as String,
@@ -50,7 +42,7 @@ class InventoryRepository @Inject constructor(
 
     suspend fun insertItem(item: Item) {
         val itemMap = mapOf(
-            "_id" to item.id, // Using _id is best practice for the primary key
+            "_id" to item.id,
             "itemId" to item.itemId,
             "name" to item.name,
             "price" to item.price,

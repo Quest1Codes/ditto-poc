@@ -42,7 +42,6 @@ class AuthViewModel @Inject constructor(
     private val _loginResultToken = MutableStateFlow<String?>(null)
 
     init {
-        // On app start, check for valid token
         val token = encryptedPrefs.getString("auth_token", null)
         val role = encryptedPrefs.getString("auth_role", "")
         val username = encryptedPrefs.getString("auth_username", "")
@@ -52,13 +51,12 @@ class AuthViewModel @Inject constructor(
             _authState.value = AuthState.Success(role ?: "")
             sessionManager.userLoggedIn(username ?: "")
             viewModelScope.launch {
-                upsertTerminalUseCase.execute(username ?: "") // Using username as the terminal ID
+                upsertTerminalUseCase.execute(username ?: "")
             }
         } else {
             logout()
         }
 
-        // Observe both when Ditto needs a token and when we have one
         viewModelScope.launch {
             combine(
                 dittoManager.isAuthenticationRequired,
@@ -75,7 +73,7 @@ class AuthViewModel @Inject constructor(
 
     fun isTokenValid(jwtToken: String): Boolean {
         try {
-            val claims = JWT.decode(jwtToken) // Does not verify signature
+            val claims = JWT.decode(jwtToken)
             return claims.expiresAt.after(Date()) ?: false
         } catch (e: Exception) {
             e.message?.let { Log.e("AuthViewModel", it) }
@@ -96,7 +94,6 @@ class AuthViewModel @Inject constructor(
                     putString("auth_username", username)
                 }
 
-                // Store the token. The observer in init {} will handle giving it to Ditto.
                 sessionManager.userLoggedIn(username)
                 _loginResultToken.value = loginResult.accessToken
                 _authState.value = AuthState.Success(loginResult.role)
@@ -114,7 +111,6 @@ class AuthViewModel @Inject constructor(
             _authState.value = AuthState.Loading
             val result = authRepository.register(username, password, role)
             result.onSuccess {
-                // Automatically log in after a successful registration
                 login(username, password)
             }.onFailure { error ->
                 _authState.value = AuthState.Error(

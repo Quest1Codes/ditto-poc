@@ -11,7 +11,6 @@ data class Item(
 )
 {
     companion object {
-        // Define the collection name here to ensure consistency across the app.
         const val COLLECTION_NAME = "items"
     }
 }

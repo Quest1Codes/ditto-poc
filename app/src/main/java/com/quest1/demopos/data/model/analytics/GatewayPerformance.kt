@@ -1,12 +1,8 @@
-// File: app/src/main/java/com/quest1/demopos/data/model/analytics/GatewayPerformance.kt
 package com.quest1.demopos.data.model.analytics
 
 import live.ditto.ditto_wrapper.DittoProperty
 
-/**
- * Represents the performance metrics for a single payment gateway.
- * The _id is the gateway's unique ID to ensure one document per gateway.
- */
+// Performance metrics for a single payment gateway
 data class GatewayPerformance(
     val _id: String,
     val gatewayId: String,
@@ -18,10 +14,7 @@ data class GatewayPerformance(
     companion object {
         const val COLLECTION_NAME = "gateway_performance"
 
-        /**
-         * MODIFIED: This function now safely handles null or missing properties
-         * by providing default values, preventing the app from crashing.
-         */
+        // Safely handles null or missing properties by providing default values.
         fun fromDittoDocument(doc: DittoProperty): GatewayPerformance {
             return GatewayPerformance(
                 _id = doc["_id"] as? String ?: "unknown_id",

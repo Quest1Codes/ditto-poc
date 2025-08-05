@@ -77,7 +77,6 @@ fun QuantityControlButton(
             fontWeight = FontWeight.Bold
         )
 
-        // Increase Button
         IconButton(
             onClick = onIncrease,
             modifier = Modifier

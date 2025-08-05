@@ -10,9 +10,9 @@ class UpsertTerminalUseCase @Inject constructor(
     suspend fun execute(userId: String) {
         val terminal = Terminal(
             _id = userId,
-            storeId = "store_01", // Common stubbed Store ID
+            storeId = "store_01",
             name = "Terminal-$userId",
-            ipAddress = "192.168.1.101", // Stubbed IP Address
+            ipAddress = "192.168.1.101",
             lastSeen = System.currentTimeMillis()
         )
         coreRepository.upsertTerminal(terminal)

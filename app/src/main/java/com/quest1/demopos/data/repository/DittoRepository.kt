@@ -1,8 +1,3 @@
-/*
- * File: app/src/main/java/com/quest1/demopos/data/repository/DittoRepository.kt
- * Description: Corrected the `observeCollection` function to use `result.items`.
- * - This resolves the "Unresolved reference 'documents'" build error.
- */
 package com.quest1.demopos.data.repository
 
 import android.util.Log
@@ -32,7 +27,6 @@ class DittoRepository @Inject constructor(
     ): Flow<List<Map<String, Any?>>> = callbackFlow {
         Log.d(TAG, "Setting up REAL observer for query: $query")
         val observer: DittoStoreObserver = ditto.store.registerObserver(query, arguments) { result: DittoQueryResult ->
-            // CORRECTED LINE: Use `result.items` to get the documents.
             val docMaps = result.items.map { it.value }
             trySend(docMaps)
         }

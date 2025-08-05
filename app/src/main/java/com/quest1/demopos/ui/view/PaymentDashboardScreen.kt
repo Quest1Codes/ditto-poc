@@ -31,24 +31,22 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// Helper function to select the correct logo based on the acquirer name
 @DrawableRes
 private fun getLogoForAcquirer(acquirerName: String): Int {
     return when (acquirerName.lowercase(Locale.ROOT)) {
         "stripe" -> R.drawable.stripe_logo
         "paypal" -> R.drawable.paypal_logo
         "adyen" -> R.drawable.adyen_logo
-        else -> R.drawable.credit_card_24px // Default/fallback icon
+        else -> R.drawable.credit_card_24px
     }
 }
 
-// Helper function to get the custom height for each logo
 private fun getLogoHeightForAcquirer(acquirerName: String): Dp {
     return when (acquirerName.lowercase(Locale.ROOT)) {
         "adyen" -> 18.dp
         "paypal" -> 20.dp
         "stripe" -> 26.dp
-        else -> 24.dp // Default height
+        else -> 24.dp
     }
 }
 
@@ -132,7 +130,6 @@ fun PaymentCardItem(
                 .padding(16.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Header with acquirer logo and status
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -156,16 +153,14 @@ fun PaymentCardItem(
                 PaymentStatusBadge(status = transaction.status)
             }
 
-            // Amount
             Text(
                 text = amount,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = LightTextPrimary,
-                modifier = Modifier.align(Alignment.End) // <-- MODIFIED: Aligns text to the right
+                modifier = Modifier.align(Alignment.End)
             )
 
-            // Date and Time
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)

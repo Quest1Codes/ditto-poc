@@ -1,7 +1,7 @@
 package com.quest1.demopos.data.repository
 
 
-import android.util.Log // 1. Add Log import
+import android.util.Log
 import com.quest1.demopos.data.model.orders.Order
 import com.quest1.demopos.data.model.orders.OrderItem
 import kotlinx.coroutines.flow.Flow
@@ -17,33 +17,24 @@ class OrderRepository @Inject constructor(
     private val dittoRepository: DittoRepository,
     private val sessionManager: SessionManager
 ) {
-    // 2. Define a TAG for logging
     private val TAG = "OrderRepository"
 
     init {
-        // Start a subscription to sync all order data from the Ditto cloud.
         val subscriptionQuery = "SELECT * FROM ${Order.COLLECTION_NAME}"
         dittoRepository.startSubscription(subscriptionQuery)
     }
 
-    /**
-     * Observes the user's current active (pending) order.
-     * It returns a Flow that emits the single pending order or null if none exists.
-     */
     fun observeActiveOrder(): Flow<Order?> {
-        // This flow will re-trigger when the user logs in and the terminalId becomes available.
         return sessionManager.currentUserId.flatMapLatest { terminalId ->
             if (terminalId == null) {
-                flowOf(null) // If no user is logged in, there's no active order.
+                flowOf(null)
             } else {
-                // The query now looks for an order where the _id matches the current terminal's ID.
                 val query = "SELECT * FROM ${Order.COLLECTION_NAME} WHERE _id = :terminalId"
                 val arguments = mapOf("terminalId" to terminalId)
 
                 dittoRepository.observeCollection(query, arguments).map { documents ->
                     documents.firstOrNull()?.let { docMap ->
                         try {
-                            // Mapping logic remains the same
                             val itemsList = (docMap["items"] as? List<Map<String, Any?>>
                                 ?: emptyList()).mapNotNull { itemMap ->
                                 OrderItem(
@@ -65,7 +56,7 @@ class OrderRepository @Inject constructor(
                             )
                         } catch (e: Exception) {
                             Log.e(TAG, "Error mapping order document: $docMap", e)
-                            null // Return null if mapping fails
+                            null
                         }
                     }
                 }
@@ -73,25 +64,16 @@ class OrderRepository @Inject constructor(
         }
     }
 
-    /**
-     * Inserts a new Order into the database.
-     */
     suspend fun saveOrder(order: Order) {
         val orderMap = convertOrderToMap(order)
         dittoRepository.upsert(Order.COLLECTION_NAME, orderMap)
     }
 
-    /**
-     * Updates an existing Order in the database.
-     */
     suspend fun updateOrder(order: Order) {
         val orderMap = convertOrderToMap(order)
         dittoRepository.upsert(Order.COLLECTION_NAME, orderMap)
     }
 
-    /**
-     * Converts an Order data class to a Map for Ditto.
-     */
     private fun convertOrderToMap(order: Order): Map<String, Any?> {
         val orderItemsAsMaps = order.items.map {
             mapOf(
@@ -107,7 +89,7 @@ class OrderRepository @Inject constructor(
             "storeId" to order.storeId,
             "status" to order.status,
             "totalAmount" to order.totalAmount,
-            "createdAt" to order.createdAt.time, // Convert Date to Long for storage
+            "createdAt" to order.createdAt.time,
             "currency" to order.currency,
             "items" to orderItemsAsMaps
         )

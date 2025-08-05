@@ -78,7 +78,6 @@ fun CartScreen(
                         CartItemCard(
                             itemName = shopItem.item.name,
                             quantity = shopItem.quantityInCart,
-                            // FIX: Handle the nullable price before multiplying
                             price = currencyFormat.format((shopItem.item.price ?: 0.0) * shopItem.quantityInCart),
                             onIncrease = { viewModel.updateQuantity(shopItem.item.id, 1) },
                             onDecrease = { viewModel.updateQuantity(shopItem.item.id, -1) },

@@ -17,14 +17,12 @@ class GatewayPerformanceRepositoryImpl @Inject constructor(
 ) {
 
     init {
-        // Create an object that implements the DittoCollectionSubscription interface
         val subscription = object : DittoCollectionSubscription {
             override val collectionName: String = GatewayPerformance.COLLECTION_NAME
             override val subscriptionQuery: String = "SELECT * FROM ${GatewayPerformance.COLLECTION_NAME}"
             override val subscriptionQueryArgs: Map<String, Any> = emptyMap()
             override val evictionQuery: String = ""
         }
-        // Pass the new object to your registerSubscription function
         dittoStoreManager.registerSubscription(subscription)
     }
 
