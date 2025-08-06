@@ -1,0 +1,13 @@
+package com.quest1.demopos.data.model.analytics.ditto
+
+const val GATEWAY_PERFORMANCE_COLLECTION_NAME = "gateway_performance"
+
+const val GET_ALL_GATEWAY_PERFORMANCE_QUERY = """
+    SELECT * FROM $GATEWAY_PERFORMANCE_COLLECTION_NAME ORDER BY successRate DESC
+"""
+
+const val UPSERT_GATEWAY_PERFORMANCE_QUERY = """
+    INSERT INTO $GATEWAY_PERFORMANCE_COLLECTION_NAME
+    DOCUMENTS (:performance)
+    ON ID CONFLICT DO UPDATE
+"""

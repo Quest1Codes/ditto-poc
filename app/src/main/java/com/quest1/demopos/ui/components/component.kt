@@ -55,7 +55,6 @@ fun QuantityControlButton(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Decrease Button
         IconButton(
             onClick = onDecrease,
             modifier = Modifier
@@ -77,7 +76,6 @@ fun QuantityControlButton(
             fontWeight = FontWeight.Bold
         )
 
-        // Increase Button
         IconButton(
             onClick = onIncrease,
             modifier = Modifier
@@ -94,7 +92,6 @@ fun QuantityControlButton(
     }
 }
 
-// --- Cards ---
 
 @Composable
 fun ProductItemCard(

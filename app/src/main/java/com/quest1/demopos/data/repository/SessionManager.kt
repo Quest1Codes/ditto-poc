@@ -5,19 +5,28 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Manages the current user session, holding the logged-in user's ID.
- */
 @Singleton
 class SessionManager @Inject constructor() {
     private val _currentUserId = MutableStateFlow<String?>(null)
     val currentUserId = _currentUserId.asStateFlow()
 
+    private val _activeOrderId = MutableStateFlow<String?>(null)
+    val activeOrderId = _activeOrderId.asStateFlow()
+
     fun userLoggedIn(userId: String) {
         _currentUserId.value = userId
     }
 
+    fun setActiveOrderId(orderId: String) {
+        _activeOrderId.value = orderId
+    }
+
+    fun clearActiveOrderId() {
+        _activeOrderId.value = null
+    }
+
     fun logout() {
         _currentUserId.value = null
+        clearActiveOrderId()
     }
 }

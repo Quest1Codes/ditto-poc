@@ -23,7 +23,7 @@ object AuthModule {
     @Singleton
     fun provideMoshi(): Moshi {
         return Moshi.Builder()
-            .add(KotlinJsonAdapterFactory()) // Essential for Kotlin data classes
+            .add(KotlinJsonAdapterFactory())
             .build()
     }
 

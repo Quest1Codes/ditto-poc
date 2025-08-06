@@ -1,65 +1,22 @@
 package com.quest1.demopos.data.model.orders
+
 import android.util.Log
+import live.ditto.ditto_wrapper.DittoProperty
+import live.ditto.ditto_wrapper.MissingPropertyException
+import live.ditto.ditto_wrapper.deserializeProperty
 import java.util.Date
 
 data class Order(
     val id: String,
     val terminalId: String,
     val storeId: String,
-    val status: String, // Consider making this an enum class (e.g., "PENDING", "COMPLETED")
-    val createdAt: Date, // Unix timestamp
+    val status: String,
+    val createdAt: Date,
     val totalAmount: Double,
     val currency: String,
     val items: List<OrderItem>
 ) {
-    companion object {
-        // Define the collection name for consistency
-        const val COLLECTION_NAME = "orders"
-
-        // Define status constants
-        const val STATUS_PENDING = "PENDING"
-        const val STATUS_COMPLETED = "COMPLETED"
-
-        /**
-         * Creates an Order object from a document map.
-         * Returns null if the document cannot be properly mapped.
-         */
-        fun fromDocument(docMap: Map<String, Any?>): Order? {
-            return try {
-                // Map the items list from the document
-                val itemsList = (docMap["items"] as? List<Map<String, Any?>> ?: emptyList()).mapNotNull { itemMap ->
-                    OrderItem(
-                        itemId = itemMap["itemId"] as String,
-                        name = itemMap["name"] as String,
-                        // Cast to Number first to handle both Integer and Long safely
-                        quantity = (itemMap["quantity"] as Number).toInt(),
-                        cost = (itemMap["cost"] as Number).toInt()
-                    )
-                }
-
-                Order(
-                    id = docMap["_id"].toString(),
-                    terminalId = docMap["terminalId"] as String,
-                    storeId = docMap["storeId"] as String,
-                    status = docMap["status"] as String,
-                    totalAmount = (docMap["totalAmount"] as Number).toDouble(),
-                    // Cast to Number first to handle both Integer and Long safely
-                    createdAt = Date((docMap["createdAt"] as Number).toLong()),
-                    currency = docMap["currency"] as String,
-                    items = itemsList
-                )
-            } catch (e: Exception) {
-                Log.e("Order", "Error mapping document: $docMap", e)
-                null
-            }
-        }
-    }
-
-    /**
-     * Converts this Order object to a document map for database storage.
-     */
-    fun toDocument(): Map<String, Any?> {
-        // Convert the nested list of OrderItems into a list of maps
+    fun serializeAsMap(): Map<String, Any?> {
         val orderItemsAsMaps = items.map {
             mapOf(
                 "itemId" to it.itemId,
@@ -68,7 +25,6 @@ data class Order(
                 "cost" to it.cost
             )
         }
-
         return mapOf(
             "_id" to id,
             "terminalId" to terminalId,
@@ -79,5 +35,36 @@ data class Order(
             "currency" to currency,
             "items" to orderItemsAsMaps
         )
+    }
+
+    companion object {
+        const val STATUS_PENDING = "PENDING"
+        const val STATUS_COMPLETED = "COMPLETED"
+    }
+}
+
+fun DittoProperty.toOrder(): Order {
+    return try {
+        val itemsList = (this["items"] as? List<Map<String, Any?>> ?: emptyList()).mapNotNull { itemMap ->
+            OrderItem(
+                itemId = itemMap["itemId"] as String,
+                name = itemMap["name"] as String,
+                quantity = (itemMap["quantity"] as Number).toInt(),
+                cost = (itemMap["cost"] as Number).toInt()
+            )
+        }
+        Order(
+            id = deserializeProperty("_id"),
+            terminalId = deserializeProperty("terminalId"),
+            storeId = deserializeProperty("storeId"),
+            status = deserializeProperty("status"),
+            totalAmount = (deserializeProperty<Number>("totalAmount")).toDouble(),
+            createdAt = Date((deserializeProperty<Number>("createdAt")).toLong()),
+            currency = deserializeProperty("currency"),
+            items = itemsList
+        )
+    } catch (e: Exception) {
+        Log.e("Order.kt", "Error mapping document: $this", e)
+        throw MissingPropertyException("Error deserializing Order", this)
     }
 }

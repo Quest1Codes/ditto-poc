@@ -1,30 +1,21 @@
 package com.quest1.demopos.ui.view
 
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -34,15 +25,26 @@ import java.text.NumberFormat
 import java.util.Locale
 import kotlin.math.abs
 
-// Helper to format currency
-private fun formatCurrency(amount: Double): String {
+
+private fun formatCurrency(amount: Double, isDiscount: Boolean = false): String {
     val format = NumberFormat.getCurrencyInstance(Locale("en", "US")).apply {
         maximumFractionDigits = 2
         minimumFractionDigits = 2
         currency = java.util.Currency.getInstance("USD")
     }
-    val formatted = format.format(amount)
-    return formatted
+    val formatted = format.format(abs(amount))
+    return if (isDiscount) "-$formatted" else formatted
+}
+
+
+@DrawableRes
+private fun getLogoForProcessor(processorName: String): Int {
+    return when (processorName.lowercase(Locale.ROOT)) {
+        "stripe" -> R.drawable.stripe_logo
+        "paypal" -> R.drawable.paypal_logo
+        "adyen" -> R.drawable.adyen_logo
+        else -> R.drawable.credit_card_24px
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,32 +55,7 @@ fun PaymentGatewayScreen(
     viewModel: PaymentGatewayViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState
-
     Scaffold(
-        topBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-                    .padding(top = 8.dp, start = 12.dp, end = 16.dp),
-            ) {
-                // Modified this Row to center its content
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(64.dp)
-                        .clip(CircleShape),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center // This centers the logo
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.stripe_logo),
-                        contentDescription = "Stripe Logo",
-                        modifier = Modifier.height(48.dp)
-                    )
-                }
-            }
-        },
         bottomBar = {
             PrimaryActionButton(
                 text = "Confirm Payment",
@@ -89,30 +66,44 @@ fun PaymentGatewayScreen(
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .padding(horizontal = 24.dp)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(Modifier.height(64.dp))
-            TotalOrderHeader(totalAmount = uiState.totalAmount)
-            Spacer(Modifier.height(96.dp))
-            CreditCardLayout(
-                cardHolderName = uiState.cardHolderName
-            )
-            Spacer(Modifier.height(32.dp))
-            PaymentInfoSection(uiState = uiState, viewModel = viewModel)
-            Divider(modifier = Modifier.padding(vertical = 12.dp))
-            ExpandableOrderItems(uiState = uiState)
-            Divider(modifier = Modifier.padding(vertical = 12.dp))
-            OrderTotalSummary(uiState = uiState)
-            Spacer(Modifier.height(16.dp))
+        if (uiState.isLoadingGateway) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Fetching the best gateway...")
+                    Spacer(Modifier.height(16.dp))
+                    CircularProgressIndicator()
+                }
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .padding(horizontal = 24.dp)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(Modifier.height(64.dp))
+                TotalOrderHeader(totalAmount = uiState.totalAmount)
+                Spacer(Modifier.height(96.dp))
+                CreditCardLayout(
+                    cardHolderName = uiState.cardHolderName
+                )
+                Spacer(Modifier.height(32.dp))
+                PaymentInfoSection(uiState = uiState, viewModel = viewModel)
+                Divider(modifier = Modifier.padding(vertical = 12.dp))
+                ExpandableOrderItems(uiState = uiState)
+                Divider(modifier = Modifier.padding(vertical = 12.dp))
+                OrderTotalSummary(uiState = uiState)
+                Spacer(Modifier.height(16.dp))
+            }
         }
     }
 }
+
 
 @Composable
 private fun TotalOrderHeader(totalAmount: Double) {
@@ -145,7 +136,6 @@ private fun CreditCardLayout(cardHolderName: String) {
         Box(modifier = Modifier
             .fillMaxSize()
             .padding(24.dp)) {
-
             Image(
                 painter = painterResource(id = R.drawable.icons8_nfc_100),
                 contentDescription = "Contactless",
@@ -158,7 +148,7 @@ private fun CreditCardLayout(cardHolderName: String) {
                 contentDescription = "Card Chip",
                 modifier = Modifier
                     .align(Alignment.CenterStart)
-                    .padding(bottom = 10.dp )
+                    .padding(bottom = 10.dp)
                     .width(72.dp)
             )
             Text(
@@ -181,10 +171,10 @@ private fun CreditCardLayout(cardHolderName: String) {
     }
 }
 
+
 @Composable
 private fun PaymentInfoSection(uiState: PaymentGatewayUiState, viewModel: PaymentGatewayViewModel) {
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        // Section Heading
         Text(
             text = "Saved Cards",
             style = MaterialTheme.typography.bodyMedium,
@@ -192,8 +182,6 @@ private fun PaymentInfoSection(uiState: PaymentGatewayUiState, viewModel: Paymen
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 4.dp)
         )
-
-        // Saved Card Row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -208,14 +196,13 @@ private fun PaymentInfoSection(uiState: PaymentGatewayUiState, viewModel: Paymen
             )
             Spacer(Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                // Corrected: Used a Row for better alignment of the card number parts
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "•••• •••• ••••",
+                        text = "•••• •••• •••• ",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp, // Made dots slightly larger and bolder
+                        fontSize = 18.sp,
                         color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(bottom = 3.dp ,end = 4.dp)
+                        modifier = Modifier.padding(bottom = 3.dp, end = 4.dp)
                     )
                     Text(
                         text = uiState.cardLastFour,
@@ -240,10 +227,10 @@ private fun PaymentInfoSection(uiState: PaymentGatewayUiState, viewModel: Paymen
         }
     }
 }
+
 @Composable
 private fun ExpandableOrderItems(uiState: PaymentGatewayUiState) {
     var expanded by remember { mutableStateOf(false) }
-
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
@@ -258,12 +245,12 @@ private fun ExpandableOrderItems(uiState: PaymentGatewayUiState) {
                 color = Color.DarkGray
             )
             Icon(
-                painter = if (expanded) painterResource(R.drawable.unfold_less_24px) else painterResource(R.drawable.unfold_more_24px),
+                painter = if (expanded) painterResource(R.drawable.unfold_less_24px)
+                else painterResource(R.drawable.unfold_more_24px),
                 contentDescription = if (expanded) "Collapse" else "Expand",
-                tint = Color.Gray
+                tint = Color.Gray,
             )
         }
-
         AnimatedVisibility(visible = expanded) {
             Column(modifier = Modifier.padding(top = 16.dp)) {
                 if (uiState.orderItems.isEmpty()) {
@@ -288,8 +275,6 @@ private fun OrderTotalSummary(uiState: PaymentGatewayUiState) {
         OrderDetailRow(label = "Item Total", value = formatCurrency(uiState.itemTotal))
         OrderDetailRow(label = "Taxes", value = formatCurrency(uiState.taxes))
         Divider(modifier = Modifier.padding(vertical = 4.dp))
-
-        // Final Total Row
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween

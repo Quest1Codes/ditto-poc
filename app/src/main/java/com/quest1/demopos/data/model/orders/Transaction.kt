@@ -1,19 +1,11 @@
+// REFACTORED FILE
 package com.quest1.demopos.data.model.orders
 
-/**
- * Represents a financial transaction record to be stored in Ditto.
- *
- * @param id The unique identifier for the transaction document.
- * @param orderId The ID of the order this transaction is for.
- * @param acquirerId The ID of the payment gateway that processed the transaction.
- * @param acquirerName The name of the payment gateway.
- * @param status The final status of the transaction (e.g., "SUCCESS", "FAILED").
- * @param amount The total amount of the transaction.
- * @param currency The currency used for the transaction.
- * @param failureReason A message explaining why the transaction failed, if applicable.
- * @param latencyMs The time in milliseconds it took for the transaction to complete.
- * @param createdAt A Unix timestamp indicating when the transaction was created.
- */
+import android.util.Log
+import live.ditto.ditto_wrapper.DittoProperty
+import live.ditto.ditto_wrapper.MissingPropertyException
+import live.ditto.ditto_wrapper.deserializeProperty
+
 data class Transaction(
     val id: String,
     val orderId: String,
@@ -26,7 +18,33 @@ data class Transaction(
     val latencyMs: Long,
     val createdAt: Long
 ) {
-    companion object {
-        const val COLLECTION_NAME = "transactions"
+    fun serializeAsMap(): Map<String, Any?> {
+        return mapOf(
+            "_id" to id,
+            "orderId" to orderId,
+            "acquirerId" to acquirerId,
+            "acquirerName" to acquirerName,
+            "status" to status,
+            "amount" to amount,
+            "currency" to currency,
+            "failureReason" to failureReason,
+            "latencyMs" to latencyMs,
+            "createdAt" to createdAt
+        )
     }
+}
+
+fun DittoProperty.toTransaction(): Transaction {
+    return Transaction(
+        id = this["_id"] as? String ?: "unknown_id",
+        orderId = this["orderId"] as? String ?: "unknown_order",
+        acquirerId = this["acquirerId"] as? String ?: "unknown",
+        acquirerName = this["acquirerName"] as? String ?: "Unknown",
+        status = this["status"] as? String ?: "UNKNOWN",
+        amount = (this["amount"] as? Number)?.toDouble() ?: 0.0,
+        currency = this["currency"] as? String ?: "USD",
+        failureReason = this["failureReason"] as? String,
+        latencyMs = (this["latencyMs"] as? Number)?.toLong() ?: 0L,
+        createdAt = (this["createdAt"] as? Number)?.toLong() ?: 0L
+    )
 }

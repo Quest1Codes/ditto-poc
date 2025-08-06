@@ -19,7 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.quest1.demopos.R // Make sure to import your R file
+import com.quest1.demopos.R
 import com.quest1.demopos.ui.theme.LightTextPrimary
 import androidx.compose.foundation.Image
 @Composable
@@ -33,7 +33,6 @@ fun AuthScreen(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        // Toggles between Login and Register UIs
         if (isRegistering) {
             RegisterUI(viewModel = viewModel) {
                 isRegistering = false
@@ -52,7 +51,6 @@ fun LoginUI(
     onLoginSuccess: (String) -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
-    // State for the User ID and Password fields
     var userId by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val authState by viewModel.authState.collectAsState()
@@ -67,7 +65,7 @@ fun LoginUI(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Welcome Back",
+            text = "Quest1 POS",
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
             color = LightTextPrimary
@@ -79,7 +77,6 @@ fun LoginUI(
             modifier = Modifier.padding(top = 4.dp, bottom = 32.dp)
         )
 
-        // User ID input field
         OutlinedTextField(
             value = userId,
             onValueChange = { userId = it },
@@ -97,7 +94,6 @@ fun LoginUI(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // **FIXED**: Corrected `onValueValueChange` to `onValueChange`
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -114,9 +110,8 @@ fun LoginUI(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
         )
 
-        // Forgot Password button
         TextButton(
-            onClick = { /* TODO: Handle forgot password */ },
+            onClick = {},
             modifier = Modifier.align(Alignment.End)
         ) {
             Text("Forgot Password?",
@@ -138,7 +133,6 @@ fun LoginUI(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Navigation to Register screen
         TextButton(onClick = onNavigateToRegister) {
             Text("Don't have an account yet? Register here.",
                 style = MaterialTheme.typography.bodyMedium,
@@ -146,7 +140,6 @@ fun LoginUI(
         }
 
 
-        // Handles UI updates for different authentication states
         when (val state = authState) {
             is AuthState.Loading -> CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
             is AuthState.Error -> Text(
@@ -172,7 +165,7 @@ fun RegisterUI(
     var userId by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var role by remember { mutableStateOf("Terminal") }
-    var expanded by remember { mutableStateOf(false) } // State to control dropdown
+    var expanded by remember { mutableStateOf(false) }
     val roles = listOf("Terminal", "Admin")
     val authState by viewModel.authState.collectAsState()
 
@@ -183,7 +176,6 @@ fun RegisterUI(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // App Icon
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
@@ -200,7 +192,6 @@ fun RegisterUI(
             modifier = Modifier.padding(top = 4.dp, bottom = 32.dp)
         )
 
-        // User ID input field
         OutlinedTextField(
             value = userId,
             onValueChange = { userId = it },
@@ -218,7 +209,6 @@ fun RegisterUI(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Password input field
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -237,7 +227,6 @@ fun RegisterUI(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Role dropdown
         Box {
             OutlinedTextField(
                 value = role,
@@ -291,14 +280,12 @@ fun RegisterUI(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Navigation to Login screen
         TextButton(onClick = onNavigateToLogin) {
             Text("Already have an account? Sign In",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray)
         }
 
-        // Handles UI updates for different registration states
         when (val state = authState) {
             is AuthState.Loading -> CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
             is AuthState.Error -> Text(
@@ -307,7 +294,6 @@ fun RegisterUI(
                 modifier = Modifier.padding(top = 16.dp)
             )
             is AuthState.Success -> {
-                // Navigate back to login on successful registration
                 LaunchedEffect(Unit) {
                     onNavigateToLogin()
                 }

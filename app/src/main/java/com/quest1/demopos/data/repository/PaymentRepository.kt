@@ -9,37 +9,24 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
 import android.util.Log
+import com.quest1.demopos.data.stubGateways
 
 @Singleton
 class PaymentRepository @Inject constructor(
-    // Inject the real API service created by Retrofit from our new PaymentModule
     private val paymentApiService: PaymentApiService
 ) {
-
-    // This list now only provides the names and IDs of the acquirers.
-    private val stubGateways = listOf(
-        Gateway(id = "stripe21", name = "Stripe", supportedPaymentMethod = "Credit Card", apiEndpoint = ""),
-        Gateway(id = "adyen34", name = "Adyen", supportedPaymentMethod = "Credit Card", apiEndpoint = ""),
-        Gateway(id = "paypal56", name = "PayPal", supportedPaymentMethod = "Credit Card", apiEndpoint = "")
-    )
 
     fun getAvailableGateways(): Flow<List<Gateway>> = flow {
         emit(stubGateways)
     }
 
-    /**
-     * Processes a payment by making a real network call to the backend server.
-     */
     suspend fun processPayment(acquirer: Gateway, request: PaymentRequest): PaymentResponse {
         return try {
-            // The simulation logic is gone. Now we make a real API call.
             val response = paymentApiService.processPayment(acquirer.id, request)
 
             if (response.isSuccessful && response.body() != null) {
-                // If the server returns a 2xx status code, return the response body.
                 response.body()!!
             } else {
-                // If the server returns an error (e.g., 400), create a failure response.
                 PaymentResponse(
                     transactionId = "txn_failed",
                     status = "FAILED",
@@ -52,7 +39,6 @@ class PaymentRepository @Inject constructor(
             }
         } catch (e: Exception) {
             Log.e("PaymentRepository", "Network exception during payment processing for order: ${request.orderId}", e)
-            // Handle network exceptions (e.g., server is offline).
             PaymentResponse(
                 transactionId = "txn_network_error",
                 status = "FAILED",

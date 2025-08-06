@@ -16,7 +16,6 @@ import live.ditto.DittoAuthenticationCallback
 
 class DittoManager(
     val context: Context,
-    // We are going back to the simple online playground setup
     private val dittoAppId: String,
     private val dittoAuthUrl: String,
     private val dittoWsUrl: String
@@ -32,7 +31,7 @@ class DittoManager(
         override fun authenticationRequired(authenticator: DittoAuthenticator) {
             Log.d(TAG, "Ditto authentication required.")
             this@DittoManager.authenticator = authenticator
-            _isAuthenticationRequired.value = true          // <- move here
+            _isAuthenticationRequired.value = true
         }
 
         override fun authenticationExpiringSoon(
@@ -41,7 +40,7 @@ class DittoManager(
         ) {
             Log.d(TAG, "Ditto token expiring in $secondsRemaining seconds.")
             this@DittoManager.authenticator = authenticator
-            _isAuthenticationRequired.value = true          // <- also here
+            _isAuthenticationRequired.value = true
         }
     }
 
@@ -65,11 +64,11 @@ class DittoManager(
             ditto?.smallPeerInfo?.isEnabled = true
             ditto?.disableSyncWithV3()
             ditto?.updateTransportConfig { config ->
-                // Set the Ditto Websocket URL
                 config.connect.websocketUrls.add(dittoWsUrl)
+                config.enableAllPeerToPeer()
             }
 
-            ditto?.startSync()
+
 
             Log.d(TAG, "Ditto ONLINE WITH AUTHENTICATION initialization complete and sync started.")
 
@@ -83,14 +82,15 @@ class DittoManager(
     }
 
     fun provideTokenToAuthenticator(token: String) {
-        authenticator?.let {
+        ditto?.let {
             try {
-                it.login(token, "auth-webhook") { _, err ->
+                ditto?.auth?.login(token, "auth-webhook") { _, err ->
                     if (err != null) {
                         Log.e(TAG, "Ditto login failed: ${err.message}")
                     } else {
                         Log.d(TAG, "Ditto login request completed successfully.")
                         _isAuthenticationRequired.value = false
+                        ditto?.startSync()
                     }
                 }
             } catch (e: DittoError) {
@@ -100,6 +100,20 @@ class DittoManager(
     }
     fun requireDitto(): Ditto {
         return ditto ?: throw DittoNotCreatedException()
+    }
+
+    fun logout() {
+        try {
+            ditto?.auth?.logout()
+            ditto?.stopSync()
+            Log.d(TAG, "Ditto logout and sync stop initiated.")
+        } catch (e: DittoError) {
+            Log.e(TAG, "A DittoError occurred during logout: ${e.message}", e)
+        } catch (e: Exception) {
+            Log.e(TAG, "An unexpected error occurred during logout: ${e.message}", e)
+        } finally {
+            _isAuthenticationRequired.value = true
+        }
     }
 }
 
