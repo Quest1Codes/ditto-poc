@@ -10,15 +10,18 @@ import com.quest1.demopos.domain.usecase.order.GetActiveOrderUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 import javax.inject.Inject
+import kotlin.random.Random
 
 data class PaymentGatewayUiState(
     val totalAmount: Double = 0.0,
-
     val cardHolderName: String = "John Doe",
-    val cardLastFour: String = "4671",
+    val cardLastFour: String = "0000",
     val cardBrand: String = "Mastercard",
-    val lastUsedDate: String = "Fri, Jun 17 2025",
+    val lastUsedDate: String = "",
     val isCardSelected: Boolean = true,
     val orderItems: List<OrderItem> = emptyList(),
     val itemTotal: Double = 0.0,
@@ -37,6 +40,19 @@ class PaymentGatewayViewModel @Inject constructor(
     val uiState: State<PaymentGatewayUiState> = _uiState
 
     init {
+        val randomCardLastFour = Random.nextInt(1000, 10000).toString()
+
+        val calendar = Calendar.getInstance()
+        val daysToSubtract = Random.nextInt(2, 6)
+        calendar.add(Calendar.DAY_OF_YEAR, -daysToSubtract)
+        val dateFormat = SimpleDateFormat("E, MMM d yyyy", Locale.getDefault())
+        val randomPastDate = dateFormat.format(calendar.time)
+
+        _uiState.value = _uiState.value.copy(
+            cardLastFour = randomCardLastFour,
+            lastUsedDate = randomPastDate
+        )
+
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoadingGateway = true)
 

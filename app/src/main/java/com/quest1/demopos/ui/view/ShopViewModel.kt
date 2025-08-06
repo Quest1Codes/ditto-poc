@@ -51,7 +51,7 @@ class ShopViewModel @Inject constructor(
     private fun checkAndSeedInitialData() {
         viewModelScope.launch {
             if (getShopItemsUseCase.execute().first().isEmpty()) {
-//                addSampleItemsForTesting()
+                addSampleItemsForTesting()
             }
         }
     }

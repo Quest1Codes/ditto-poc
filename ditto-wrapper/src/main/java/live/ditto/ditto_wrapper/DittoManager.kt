@@ -103,10 +103,17 @@ class DittoManager(
     }
 
     fun logout() {
-        ditto?.auth?.logout()
-        ditto?.stopSync()
-        _isAuthenticationRequired.value = true;
-
+        try {
+            ditto?.auth?.logout()
+            ditto?.stopSync()
+            Log.d(TAG, "Ditto logout and sync stop initiated.")
+        } catch (e: DittoError) {
+            Log.e(TAG, "A DittoError occurred during logout: ${e.message}", e)
+        } catch (e: Exception) {
+            Log.e(TAG, "An unexpected error occurred during logout: ${e.message}", e)
+        } finally {
+            _isAuthenticationRequired.value = true
+        }
     }
 }
 
