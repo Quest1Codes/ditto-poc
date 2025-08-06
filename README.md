@@ -70,7 +70,7 @@ PAYMENT_SERVICE_BASE_URL=http://<YOUR_LOCAL_IP_ADDRESS>:5002/
 
 ### 2. Backend Services Setup
 
-The application relies on two backend microservices run as Docker containers:
+The application relies on three backend microservices run as Docker containers:
 
 #### 2.1 Authentication Service (auth-service)
 
@@ -128,8 +128,21 @@ docker-compose up --build -d
 
 The service will run locally on **port 8004**. You must deploy this service or expose this port to a public URL (e.g., using [ngrok](https://ngrok.com/)) that the Ditto cloud can reach.
 
----
+#### 2.3 Payment Service (payment-service)
 
+This service simulates payment processing with various gateways and runs locally on your network.
+
+##### A. Run the Container
+
+From the `payment-service/` directory, execute:
+
+```bash
+docker-compose up --build -d
+```
+
+The service will be available on your local machine at port 5002.
+
+--- 
 ### 3. Ditto Portal Configuration
 
 Configure your Ditto app to use your deployed authentication webhook:
