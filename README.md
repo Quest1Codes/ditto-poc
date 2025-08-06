@@ -1,6 +1,6 @@
 # Quest1 Demo POS System
 
-[![View Codebase](https://img.shields.io/badge/View-Codebase-blue?style=flat-square)](#) [![Watch Demo](https://img.shields.io/badge/Watch-Demo%20Video-red?style=flat-square)](https://youtu.be/reocbJzh4jM)
+[![View Codebase](https://img.shields.io/badge/View-Codebase-blue?style=flat-square)](https://github.com/Quest1Codes/ditto-poc) [![Watch Demo](https://img.shields.io/badge/Watch-Demo%20Video-red?style=flat-square)](https://youtu.be/reocbJzh4jM)
 
 Quest1 POS is a modern, offline-first Android Point-of-Sale (POS) application. It leverages the Ditto platform for real-time, peer-to-peer data synchronization, enabling seamless operation without an internet connection.
 
