@@ -25,10 +25,4 @@ class GatewayPerformanceRepository @Inject constructor(
         }
         dittoStoreManager.registerSubscription(subscription)
     }
-
-    fun observePerformanceRankings(): Flow<List<GatewayPerformance>> {
-        return dittoStoreManager.observeLiveQueryAsFlow(
-            dittoQuery = GetAllGatewayPerformanceQuery()
-        )
-    }
 }

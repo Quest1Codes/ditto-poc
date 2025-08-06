@@ -82,11 +82,6 @@ class DittoRepository @Inject constructor(
         }
     }
 
-    fun startSubscription(query: String) {
-        Log.d(TAG, "Starting subscription for query: $query")
-        ditto.sync.registerSubscription(query)
-    }
-
     init {
         startInventorySubscription()
         startOrdersSubscription()
