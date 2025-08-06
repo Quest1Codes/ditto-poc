@@ -1,122 +1,167 @@
-# Quest1 Demo POS
+# Quest1 Demo POS System
 
-[Click here to view codebase](https://github.com/Quest1Codes/ditto-poc) | [Click here to view demo video](https://www.youtube.com/watch?v=reocbJzh4jM)
+[![View Codebase](https://img.shields.io/badge/View-Codebase-blue?style=flat-square)](#) [![Watch Demo](https://img.shields.io/badge/Watch-Demo%20Video-red?style=flat-square)](#)
 
-
-## Overview
-
-The Quest1 Demo POS is an Android Point-of-Sale (POS) application built with modern Android development tools and practices. It showcases a complete, albeit simplified, POS system with features like user authentication, a product catalog, a shopping cart, and a dynamic payment processing system. The application leverages the Ditto platform for real-time data synchronization, enabling features like live analytics and peer-to-peer data sharing.
-
-## Core Technologies
-
-* **Kotlin**: The primary programming language.
-* **Jetpack Compose**: For building the user interface.
-* **Hilt**: For dependency injection.
-* **Retrofit**: For making network requests to authentication and payment APIs.
-* **Ditto**: For real-time data synchronization and peer-to-peer communication.
-* **Jetpack ViewModel**: For managing UI-related data.
-* **Coroutines & Flow**: For asynchronous programming.
-* **Android Security (EncryptedSharedPreferences)**: For secure storage of sensitive data like authentication tokens.
-
-## Application Entry Points
-
-The entry points are the files that initialize and launch the application.
-
-### `DittoPosApp.kt`
-
-This is the main application class that is created when the app starts. It is annotated with `@HiltAndroidApp`, which sets up the Hilt dependency injection framework for the entire application.
-
-### `MainActivity.kt`
-
-This file contains the main screen of the application and is the primary entry point for the user interface. It sets up the overall theme and navigation for the app. It also handles requesting necessary permissions for the Ditto synchronization framework to function correctly.
-
-## Dependency Injection
-
-Dependency injection is a technique used to provide the necessary objects (dependencies) to a class. This project uses Hilt for dependency injection, and the configuration is organized into modules.
-
-### `di/AppModule.kt`
-
-This module provides application-wide dependencies that are available to all parts of the app. It is responsible for initializing and configuring:
-- **DittoManager**: Manages the core functionalities of the Ditto platform.
-- **EncryptedSharedPreferences**: Provides a secure way to store sensitive data.
-- **DittoStoreManager**: Manages the data store for the Ditto platform.
-
-### `di/AuthModule.kt`
-
-This module provides dependencies related to authentication. It sets up **Retrofit**, a library for making network requests to an authentication service, and **Moshi**, a library for converting JSON data to and from Kotlin objects.
-
-### `di/PaymentModule.kt`
-
-Similar to `AuthModule`, this module is responsible for providing dependencies for payment-related network requests. It configures a separate Retrofit instance for the payment service.
-
-## User Interface (UI)
-
-The UI package contains all the screens and UI components of the application. The UI is built using Jetpack Compose, a modern toolkit for building native Android UI.
-
-### `ui/view/AuthScreen.kt`
-
-This file defines the user interface for user authentication, including both the login and registration screens. It captures user input for user ID and password and communicates with the `AuthViewModel` to handle the authentication logic.
-
-### `ui/view/ShopScreen.kt`
-
-This screen displays the list of products available for sale. It allows users to add items to their cart and view the total number of items and the total amount. It also includes a top app bar with settings and a bottom navigation bar.
-
-### `ui/view/CartScreen.kt`
-
-This screen displays the items that the user has added to their shopping cart. Users can view and adjust the quantity of each item, remove items from the cart, and proceed to payment.
-
-### `ui/view/PaymentScreen.kt`
-
-This screen handles the payment process, showing different states such as "initiating," "processing," "successful," or "failed".
-
-### `ui/view/AnalyticsScreen.kt`
-
-This screen displays analytics and performance data for the store, such as total transactions, revenue, and recent transactions. It also shows rankings of different payment gateways based on their performance.
-
-### `ui/view/PaymentDashboardScreen.kt`
-
-This screen provides a dashboard of all payment transactions, displaying details for each payment such as the acquirer, amount, and status.
-
-### `ui/view/PresenceViewer.kt`
-
-This screen displays the Ditto Presence Viewer, a tool that shows real-time information about other devices connected to the network.
-
-### UI Components
-
-- **`components/composables.kt`**: This file contains reusable UI components like `PrimaryActionButton` for buttons and `QuantityControlButton` for increasing or decreasing item quantities.
-- **`components/TerminalId.kt`**: This component displays the terminal ID and provides additional information about the terminal's connection status through a tooltip.
-- **`components/ConnectionStatusIndicator.kt`**: A simple visual indicator that shows whether the device is connected or disconnected.
-
-## ViewModels
-
-ViewModels are responsible for preparing and managing the data for the UI. They are designed to store and manage UI-related data in a lifecycle-conscious way.
-
-### `ui/view/AuthViewModel.kt`
-
-This ViewModel handles the logic for user authentication. It interacts with the `AuthRepository` to perform login and registration and manages the authentication state (e.g., idle, loading, success, error). It also manages the authentication token and provides it to the Ditto instance when required.
-
-### `ui/view/ShopViewModel.kt`
-
-This ViewModel manages the state for the `ShopScreen`. It fetches the list of available items from the `InventoryRepository` and keeps track of the items in the shopping cart.
-
-### `ui/view/PaymentViewModel.kt`
-
-This ViewModel handles the logic for the payment process. It interacts with use cases to select the best payment gateway and process the payment. It updates the UI with the current status of the payment.
-
-### `ui/view/AnalyticsViewModel.kt`
-
-This ViewModel provides the data for the `AnalyticsScreen`. It fetches store performance data, recent transactions, and acquirer rankings from the `AnalyticsRepository` and `TransactionUseCase`.
-
-### `ui/view/ShopTopBarViewModel.kt`
-
-This ViewModel provides the data for the top app bar in the `ShopScreen`, including the terminal ID and terminal information.
-
-## Theming
-
-The `ui/theme` directory contains files that define the visual appearance of the application.
-
-- **`Color.kt`**: Defines the color palette used throughout the app.
-- **`Theme.kt`**: Sets up the overall theme for the application, including the color schemes for light and dark modes and the typography.
+Quest1 POS is a modern, offline-first Android Point-of-Sale (POS) application. It leverages the Ditto platform for real-time, peer-to-peer data synchronization, enabling seamless operation without an internet connection.
 
 
-This documentation provides an understanding of the Quest1 Demo POS application's structure and functionality. For more specific details, you can refer to the inline comments and the implementation within each file.
+### Key Features
+
+- User Authentication with secure login and registration
+- Offline-First Architecture that works without internet connectivity
+- Shopping Cart Management for adding, removing, and modifying items
+- Payment Processing with simulated payment gateway integration and intelligent routing
+- Real-time Analytics with live performance metrics and dashboards
+- P2P Data Sync for real-time data synchronization across devices
+- Modern UI built with Jetpack Compose
+
+---
+
+## Getting Started
+
+Follow these instructions to get the complete system running on your local machine for development and testing purposes.
+
+### Prerequisites
+
+Ensure you have the following installed and configured on your system:
+
+- **Android Studio**: Latest stable version recommended
+- **Docker & Docker Compose**: For running backend microservices
+- **Ditto Account**: Free account required to obtain an App ID from the [Ditto Portal](https://portal.ditto.live)
+
+---
+
+## System Setup
+
+### 1. Android Application Setup
+
+Configure your local environment variables to build and run the mobile application.
+
+#### 1.1 Create `local.properties` File
+
+In the root directory of the Android project, create a new file named `local.properties`.
+
+#### 1.2 Add Configuration Variables
+
+Copy the following configuration into your `local.properties` file and replace the placeholder values:
+
+```properties
+# Ditto Platform Configuration
+DITTO_APP_ID=<YOUR_DITTO_APP_ID>
+DITTO_AUTH_URL=<YOUR_DITTO_AUTH_URL>
+DITTO_WS_URL=<YOUR_DITTO_WS_URL>
+
+# Local Backend Services Configuration
+AUTH_SERVICE_BASE_URL=http://<YOUR_LOCAL_IP_ADDRESS>:5001/
+PAYMENT_SERVICE_BASE_URL=http://<YOUR_LOCAL_IP_ADDRESS>:5002/
+```
+
+**Configuration Parameters:**
+
+- `DITTO_APP_ID`: Your unique application identifier from the Ditto Portal
+- `DITTO_AUTH_URL`: Authentication URL from the Ditto Portal
+- `DITTO_WS_URL`: The WebSocket URL for the Ditto Big Peer for cloud sync
+- `AUTH_SERVICE_BASE_URL`: Base URL for the authentication service container
+- `PAYMENT_SERVICE_BASE_URL`: Base URL for the payment service container
+
+**Important Note**: Ensure the IP address used for local backend services is accessible from your Android device or emulator. Use your computer's local network IP, or for emulator `10.0.2.2`.
+
+---
+
+### 2. Backend Services Setup
+
+The application relies on three backend microservices run as Docker containers:
+
+#### 2.1 Authentication Service (auth-service)
+
+This service handles user registration and login, issuing JWTs for the POS application.
+
+##### A. Create `.env` File
+
+Navigate to the `auth-service/` directory and create a file named `.env`:
+
+```bash
+# Flask and JWT Secrets (use strong, random keys)
+SECRET_KEY=<YOUR_FLASK_SECRET_KEY>
+JWT_SECRET_KEY=<YOUR_JWT_SECRET_KEY>
+
+# MongoDB Connection Details
+MONGO_INITDB_ROOT_USERNAME=pos_user
+MONGO_INITDB_ROOT_PASSWORD=<YOUR_MONGO_PASSWORD>
+MONGO_HOST=db
+MONGO_PORT=27017
+MONGO_DB_NAME=pos_auth
+```
+
+##### B. Run the Container
+
+From the `auth-service/` directory, execute:
+
+```bash
+docker-compose up --build -d
+```
+
+The service will be available on your local machine at **port 5001**.
+
+#### 2.2 Authentication Webhook (auth-webhook)
+
+This service validates JWTs issued by the Authentication Service for Ditto cloud integration. It must be deployed to a publicly accessible URL.
+
+##### A. Create `.env` File
+
+Navigate to the `auth-webhook/` directory and create a file named `.env`:
+
+```bash
+# JWT Secret
+JWT_SECRET_KEY=<YOUR_JWT_SECRET_KEY>
+```
+
+**Critical Note**: The `JWT_SECRET_KEY` here must be identical to the one set for the auth-service.
+
+##### B. Run the Container
+
+From the `auth-webhook/` directory, execute:
+
+```bash
+docker-compose up --build -d
+```
+
+The service will run locally on **port 8004**. You must deploy this service or expose this port to a public URL (e.g., using [ngrok](https://ngrok.com/)) that the Ditto cloud can reach.
+
+#### 2.3 Payment Service (payment-service)
+
+This service simulates payment processing with various gateways and runs locally on your network.
+
+##### A. Run the Container
+
+From the `payment-service/` directory, execute:
+
+```bash
+docker-compose up --build -d
+```
+
+The service will be available on your local machine at port 5002.
+
+--- 
+### 3. Ditto Portal Configuration
+
+Configure your Ditto app to use your deployed authentication webhook:
+
+1. Log in to the [Ditto Portal](https://portal.ditto.live) and select your application
+2. Navigate to the **Connect** tab
+3. Under **Authentication mode**, select "Online with Authentication"
+4. In the **Authentication webhooks** section, click "New webhook"
+5. Set the **Name** to `auth-webhook` (must match exactly)
+6. Set the **URL** to your public webhook URL followed by `/auth` (e.g., `https://your-public-webhook-url.com/auth`)
+7. Save the webhook configuration
+
+---
+
+### 4. Building and Running the Application
+
+1. **Sync Gradle Files**: Open the Android project in Android Studio and allow Gradle to sync
+2. **Select a Device**: Choose a physical device or emulator connected to the same network as your backend services
+3. **Run the App**: Click the "Run" button in Android Studio to build and deploy the application
+
+
+
